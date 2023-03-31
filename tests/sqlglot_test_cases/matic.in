@@ -1,0 +1,28 @@
+with transfers_to as (
+select `to` as wallet,
+sum(cast(value as double))/1e18 as amount
+from erc20_polygon.evt_Transfer
+where contract_address = lower('0xea1132120ddcdda2f119e99fa7a27a0d036f7ac9')
+group by 1
+)
+
+, transfers_from as (
+select `from` as wallet,
+(-1)*sum(cast(value as double))/1e18 as amount
+from erc20_polygon.evt_Transfer
+where contract_address = lower('0xea1132120ddcdda2f119e99fa7a27a0d036f7ac9')
+group by 1
+)
+
+, all_opers as (
+select * from transfers_from d
+union all
+select * from  transfers_to w 
+)
+
+select wallet as `user`, sum(amount) as amount, 0 as ethdebt
+from all_opers
+group by 1
+having sum(amount) >= 0.1
+and wallet <> lower('0x0000000000000000000000000000000000000000')
+order by 2 desc
