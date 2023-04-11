@@ -14,13 +14,13 @@ class Case:
     dataset: str  # can be empty if not relevant to query
 
 
-test_cases_sqlglot = [
-    Case("sqlglot_test_cases/dex.in", "sqlglot_test_cases/dex.out", "postgres", "ethereum"),
-    Case("sqlglot_test_cases/interval.in", "sqlglot_test_cases/interval.out", "spark", ""),
-    Case("sqlglot_test_cases/matic.in", "sqlglot_test_cases/matic.out", "spark", ""),
-    Case("sqlglot_test_cases/param.in", "sqlglot_test_cases/param.out", "postgres", ""),
-    Case("sqlglot_test_cases/aliases.in", "sqlglot_test_cases/aliases.out", "postgres", ""),
-    Case("sqlglot_test_cases/now.in", "sqlglot_test_cases/now.out", "postgres", ""),
+test_cases = [
+    Case("test_cases/dex.in", "test_cases/dex.out", "postgres", "ethereum"),
+    Case("test_cases/interval.in", "test_cases/interval.out", "spark", ""),
+    Case("test_cases/matic.in", "test_cases/matic.out", "spark", ""),
+    Case("test_cases/param.in", "test_cases/param.out", "postgres", ""),
+    Case("test_cases/aliases.in", "test_cases/aliases.out", "postgres", ""),
+    Case("test_cases/now.in", "test_cases/now.out", "postgres", ""),
 ]
 
 
@@ -29,7 +29,7 @@ def canonicalize(multiline_string):
     return " ".join(line.strip() for line in multiline_string.split("\n")).lower()
 
 
-@pytest.mark.parametrize("testcase", test_cases_sqlglot)
+@pytest.mark.parametrize("testcase", test_cases)
 def test_translate_sqlglot(testcase):
     p = Path(__file__).parent
     in_filename = p / testcase.in_filename

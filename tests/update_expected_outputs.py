@@ -1,7 +1,7 @@
 from pathlib import Path
 
 from dune.translate.translate import translate
-from tests.test_translate import test_cases_sqlglot
+from tests.test_translate import test_cases
 
 
 def update_test_case(tc):
@@ -17,5 +17,5 @@ def update_test_case(tc):
 
 
 if __name__ == "__main__":
-    for testcase in test_cases_sqlglot:
+    for testcase in test_cases:
         update_test_case(testcase)
