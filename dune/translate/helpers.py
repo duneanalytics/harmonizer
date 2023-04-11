@@ -260,13 +260,13 @@ def bytearray_parameter_fix(node):
 
 
 def table_replacement(node):
-    """Table replacement logic for changes in schemas. only needed for migrations from Postgres."""
+    """Table replacements for Postgres -> DuneSQL"""
     if (
         isinstance(node, sqlglot.exp.Table)
         and quoted_param_left_placeholder not in node.sql(dialect="trino")
         and quoted_param_right_placeholder not in node.sql(dialect="trino")
     ):  # not a parameterized table name
-        full_table_node = node.sql(dialect="trino").replace('"', "")
+        full_table_node = node.sql(dialect="trino")
 
         # some spells require more custom mapping
         spellbook = {
@@ -297,7 +297,6 @@ def table_replacement(node):
                 chain_added_table = chain_added_table + " as " + node.unalias().alias
             return sqlglot.parse_one(chain_added_table, read="trino")
 
-    # otherwise it's some unknown/CTE, so we don't change anything
     return node
 
 
@@ -421,7 +420,7 @@ def transforms(query_tree, dialect, dataset):
             "polygon": chain_where_polygon,
         }.get(dataset, chain_where_ethereum)
         transform_order = [
-            table_replacement,  # must be first, takes care of table names and quotes
+            table_replacement,
             interval_fix,
             fix_boolean,
             cast_numeric,
