@@ -1,1 +1,41 @@
-WITH transfers_to AS (SELECT "to" AS wallet, SUM(TRY_CAST(CAST(value AS DOUBLE) AS DOUBLE)) / 1e18 AS amount FROM erc20_polygon.evt_Transfer WHERE contract_address = LOWER('0xea1132120ddcdda2f119e99fa7a27a0d036f7ac9') GROUP BY 1), transfers_from AS (SELECT "from" AS wallet, (-1) * SUM(TRY_CAST(CAST(value AS DOUBLE) AS DOUBLE)) / 1e18 AS amount FROM erc20_polygon.evt_Transfer WHERE contract_address = LOWER('0xea1132120ddcdda2f119e99fa7a27a0d036f7ac9') GROUP BY 1), all_opers AS (SELECT * FROM transfers_from AS d UNION ALL SELECT * FROM transfers_to AS w) SELECT wallet AS "user", SUM(CAST(amount AS DOUBLE)) AS amount, 0 AS ethdebt FROM all_opers GROUP BY 1 HAVING SUM(CAST(amount AS DOUBLE)) >= 0.1 AND wallet <> LOWER('0x0000000000000000000000000000000000000000') ORDER BY 2 DESC
+WITH transfers_to AS (
+  SELECT
+    "to" AS wallet,
+    SUM(TRY_CAST(CAST(value AS DOUBLE) AS DOUBLE)) / 1e18 AS amount
+  FROM erc20_polygon.evt_Transfer
+  WHERE
+    contract_address = LOWER('0xea1132120ddcdda2f119e99fa7a27a0d036f7ac9')
+  GROUP BY
+    1
+), transfers_from AS (
+  SELECT
+    "from" AS wallet,
+    (
+      -1
+    ) * SUM(TRY_CAST(CAST(value AS DOUBLE) AS DOUBLE)) / 1e18 AS amount
+  FROM erc20_polygon.evt_Transfer
+  WHERE
+    contract_address = LOWER('0xea1132120ddcdda2f119e99fa7a27a0d036f7ac9')
+  GROUP BY
+    1
+), all_opers AS (
+  SELECT
+    *
+  FROM transfers_from AS d
+  UNION ALL
+  SELECT
+    *
+  FROM transfers_to AS w
+)
+SELECT
+  wallet AS "user",
+  SUM(CAST(amount AS DOUBLE)) AS amount,
+  0 AS ethdebt
+FROM all_opers
+GROUP BY
+  1
+HAVING
+  SUM(CAST(amount AS DOUBLE)) >= 0.1
+  AND wallet <> LOWER('0x0000000000000000000000000000000000000000')
+ORDER BY
+  2 DESC

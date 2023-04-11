@@ -1,1 +1,5 @@
-SELECT evt_block_time + INTERVAL '1' day * term AS can_claim_day, term, rank FROM xen_ethereum.XENCrypto_evt_RankClaimed
+SELECT
+  evt_block_time + INTERVAL '1' day * term AS can_claim_day,
+  term,
+  rank
+FROM xen_ethereum.XENCrypto_evt_RankClaimed

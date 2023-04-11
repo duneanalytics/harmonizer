@@ -431,49 +431,47 @@ def fix_bytearray_param_final(statement):
     return statement
 
 
-def statement_final_fixes(expression_tree):
+def statement_final_fixes(query):
     """operations below are to do some overall fixes to the query text"""
-    statement = expression_tree.sql(dialect="trino")  # get the text statement
-
     # Insert parameters again
-    statement = statement.replace(quoted_param_left_placeholder, "{{")
-    statement = statement.replace(quoted_param_right_placeholder, "}}")
+    query = query.replace(quoted_param_left_placeholder, "{{")
+    query = query.replace(quoted_param_right_placeholder, "}}")
 
     # replace and warn about bytearray functions
-    if "bytea2numeric" in statement.lower():
-        statement = statement.replace("bytea2numeric", "bytearray_to_bigint")
+    if "bytea2numeric" in query.lower():
+        query = query.replace("bytea2numeric", "bytearray_to_bigint")
 
-        statement = (
+        query = (
             "\n\n/* !Bytea warning: We now have new bytearray functions such as to cover conversions and stuff like "
             + "length, concat, substring, etc. Check out the docs here: "
             + "https://dune.com/docs/reference/dune-v2/query-engine/#byte-array-to-numeric-functions */"
-        ) + statement
+        ) + query
 
-    if '= LOWER("{{' in statement:
-        statement = (
+    if '= LOWER("{{' in query:
+        query = (
             "\n\n/* !Bytea parameter warning: Make sure to change \\x to 0x in the parameters, bytea types are "
             + "native now (no need for quotes or lower or \\x)' */"
-        ) + statement
+        ) + query
 
     # if brackets [ ] are used, warn about array indexing
-    if re.search(r"\[.*\]", statement):
-        statement = (
+    if re.search(r"\[.*\]", query):
+        query = (
             "\n\n/* !Array warning: Arrays in dune SQL are indexed from 1, not 0. "
             + "The migrator will not catch this if you indexed using variables*/"
-        ) + statement
+        ) + query
 
-    if "dune_user_generated" in statement.lower():
-        statement = (
+    if "dune_user_generated" in query.lower():
+        query = (
             "\n\n/* !Generated view warning: you can't query v1 views anymore. All queries in DuneSQL are by "
             + "default views though (try querying the table 'query_1747157') */"
-            + statement
+            + query
         )
 
-    statement = statement.replace(
+    query = query.replace(
         "usd_amount", "amount_usd"
     )  # spell specific column rename, there might be more of these.
 
-    statement = fix_bytearray_param_final(statement)  # fixing parameter bytearrays and adding a warning to the top
+    query = fix_bytearray_param_final(query)  # fixing parameter bytearrays and adding a warning to the top
 
     # adding reminder to switch engine and come to discord
     # TODO: this text should be added after all translation steps
@@ -488,7 +486,7 @@ def statement_final_fixes(expression_tree):
     */
 
 """
-        + statement
+        + query
     )
 
-    return statement
+    return query

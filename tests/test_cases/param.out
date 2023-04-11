@@ -1,1 +1,3 @@
-SELECT {{ param }} FROM foo
+SELECT
+  {{ param }}
+FROM foo

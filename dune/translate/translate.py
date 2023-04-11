@@ -18,14 +18,15 @@ def translate(query, dialect, dataset):
         raise ValueError(f"Unknown dialect: {dialect}")
     return _translate_query_sqlglot(query, dialect, dataset.lower())
 
+
 def _translate_query_sqlglot(query, sqlglot_dialect, dataset = None):
     """Translate a query using SQLGLot plus custom rules"""
     try:
         # note that you can't use lower() in any returns, because that affects table name and parameters
         query_tree = prep_query(query, sqlglot_dialect)
         query_tree = transform(query_tree, sqlglot_dialect, dataset)
-        final = statement_final_fixes(query_tree).replace("'from'", '"from"')
-        return final
+        query = query_tree.sql(dialect="trino", pretty=True)
+        return statement_final_fixes(query)
     except ParseError as e:
         # SQLGlot inserts terminal style colors to emphasize error location.
         # We remove these, as they mess up the formatting.
