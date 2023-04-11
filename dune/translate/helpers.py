@@ -467,9 +467,7 @@ def statement_final_fixes(query):
             + query
         )
 
-    query = query.replace(
-        "usd_amount", "amount_usd"
-    )  # spell specific column rename, there might be more of these.
+    query = query.replace("usd_amount", "amount_usd")  # spell specific column rename, there might be more of these.
 
     query = fix_bytearray_param_final(query)  # fixing parameter bytearrays and adding a warning to the top
 

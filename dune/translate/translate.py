@@ -19,7 +19,7 @@ def translate(query, dialect, dataset):
     return _translate_query_sqlglot(query, dialect, dataset.lower())
 
 
-def _translate_query_sqlglot(query, sqlglot_dialect, dataset = None):
+def _translate_query_sqlglot(query, sqlglot_dialect, dataset=None):
     """Translate a query using SQLGLot plus custom rules"""
     try:
         # note that you can't use lower() in any returns, because that affects table name and parameters
