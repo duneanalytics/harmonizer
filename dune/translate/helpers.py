@@ -1,7 +1,7 @@
 import re
 from functools import partial
 
-from sqlglot import exp, parse_one, transpile
+import sqlglot
 
 
 def extract_nested_select(text):
@@ -12,7 +12,7 @@ def extract_nested_select(text):
             stack.append(i)
         elif char == ")":
             if len(stack) > 1:
-                stack.pop()  # if ) is found but stack is greater than 1, we're still in a nested select
+                stack.pop()  # if a ")" is found but stack is greater than 1, we're still in a nested select
             else:  # if stack is 1, we're at the end of the nested select
                 end = i + 1
                 substring = text[stack[0] : end].strip()
@@ -30,8 +30,12 @@ def recurse_where(node, required_tables, condition_add):
 
     Useful for adding aliased "blockchain = 'ethereum'"  or other where statements in the right places.
     """
-
-    statement = str(node)
+    if isinstance(node, sqlglot.Expression):
+        statement = node.sql(dialect="trino")
+    elif isinstance(node, str):
+        statement = node
+    else:
+        raise ValueError(f"node must be a sqlglot.Expression or string, not {type(node)}")
     condition_add = condition_add.strip()  # remove whitespace
 
     # we're going to remove inner selects, add WHERE statements, then put them back in.
@@ -41,7 +45,7 @@ def recurse_where(node, required_tables, condition_add):
     for i, group in enumerate(match_groups):
         statement = statement.replace(group, f"{placeholder}{i}__)")
 
-    tables = parse_one(statement).find_all(exp.Table)
+    tables = sqlglot.parse_one(statement).find_all(sqlglot.exp.Table)
     for table in tables:
         for req in required_tables:
             if req in str(table).replace('"', ""):
@@ -124,7 +128,7 @@ def chain_where_blockchain(node, blockchain):
     # only run this for the highest level select, then it will recurse down
     if node.key == "select" and node.parent is None:
         statement = recurse_where(node, required_tables, condition_add)  # function defined above
-        return parse_one(statement)
+        return sqlglot.parse_one(statement)
     return node
 
 
@@ -138,9 +142,9 @@ chain_where_polygon = partial(chain_where_blockchain, blockchain="polygon")
 def dex_trades_fixes(node):
     # doesn't matter if subquery or not, it will replace the found filter.
     if node.key == "select":
-        if "dex.in.trades" in str(node).replace('"', ""):
+        if "dex.in.trades" in node.sql(dialect="trino").replace('"', ""):
             # change exchange_contract_address to project_contract_address
-            final_where = str(node).replace("exchange_contract_address", "project_contract_address")
+            final_where = node.sql(dialect="trino").replace("exchange_contract_address", "project_contract_address")
 
             # removing category from WHERE statement since that isn't in dex.in.trades anymore
             clean_matches = [
@@ -174,7 +178,7 @@ def dex_trades_fixes(node):
                 flags=re.IGNORECASE,
             )
 
-            return parse_one(final_where)
+            return sqlglot.parse_one(final_where)
     return node
 
 
@@ -224,7 +228,7 @@ def interval_fix(node):
                 .replace(param_left_placeholder, quoted_param_left_placeholder)
                 .replace(param_right_placeholder, quoted_param_right_placeholder)
             )
-            return parse_one(final_interval)
+            return sqlglot.parse_one(final_interval)
     return node
 
 
@@ -249,18 +253,18 @@ def bytearray_parameter_fix(node):
                 + r"['\"].*?\)"
             )
             match = re.search(pattern, str(node))
-            return parse_one(str(node).split("=")[0] + '= lower("{{' + match.group(1) + '}}")')
+            return sqlglot.parse_one(str(node).split("=")[0] + '= lower("{{' + match.group(1) + '}}")')
     return node
 
 
 def table_replacement(node):
     """Table replacement logic for changes in schemas. only needed for migrations from Postgres."""
     if (
-        isinstance(node, exp.Table)
+        isinstance(node, sqlglot.exp.Table)
         and quoted_param_left_placeholder not in str(node)
         and quoted_param_right_placeholder not in str(node)
     ):  # not a parameterized table name
-        full_table_node = str(node).replace('"', "")
+        full_table_node = node.sql(dialect="trino").replace('"', "")
 
         # some spells require more custom mapping
         spellbook = {
@@ -280,7 +284,7 @@ def table_replacement(node):
             if node.unalias().alias is not None:
                 # if an alias is used for the table, add it back
                 spell_table = spell_table + " as " + node.unalias().alias
-            return parse_one(spell_table)
+            return sqlglot.parse_one(spell_table)
 
         # else if decoded table, then add _ethereum to the table name
         elif any(decoded in node.name for decoded in ["_evt_", "_call_"]):
@@ -289,7 +293,7 @@ def table_replacement(node):
             if node.unalias().alias is not None:
                 # if an alias is used, add it back on
                 chain_added_table = chain_added_table + " as " + node.unalias().alias
-            return parse_one(chain_added_table)
+            return sqlglot.parse_one(chain_added_table)
 
     # otherwise it's some unknown/CTE, so we don't change anything
     return node
@@ -300,39 +304,40 @@ def cast_numeric(node):
     and it has amount/value in the name, cast to double"""
     if node.key == "column":
         if any(val in node.name.lower() for val in ["amount", "value"]):
-            return parse_one("cast(" + node.name + " as double)")
+            return sqlglot.parse_one("cast(" + node.name + " as double)")
+            return sqlglot.parse_one("cast(" + node.name + " as double)")
     return node
 
 
 def cast_timestamp(node):
     if node.key == "literal":
         # and contains 'yyyy-mm-dd' format then cast to timestamp
-        if re.search(r"\d{4}-\d{2}-\d{2}", str(node)):
-            return parse_one("timestamp " + str(node))
+        if re.search(r"\d{4}-\d{2}-\d{2}", node.sql(dialect="trino")):
+            return sqlglot.parse_one("timestamp " + node.sql(dialect="trino"))
 
         # or if it is a param that contains date/time
         pattern = re.escape(quoted_param_left_placeholder) + r"(.*?)" + re.escape(quoted_param_right_placeholder)
-        match = re.search(pattern, str(node))
-        if match and any(d in str(node).lower() for d in ["date", "time"]):
-            return parse_one("timestamp '{{" + match.group(1) + "}}'")
+        match = re.search(pattern, node.sql(dialect="trino"))
+        if match and any(d in node.sql(dialect="trino").lower() for d in ["date", "time"]):
+            return sqlglot.parse_one("timestamp '{{" + match.group(1) + "}}'")
     return node
 
 
 def fix_boolean(node):
     """If node.key is 'literal' and contains 'true' or 'false' then cast to boolean"""
     if node.key == "literal":
-        if any(boolean in str(node).lower() for boolean in ["true", "false"]):
+        if any(boolean in node.sql(dialect="trino").lower() for boolean in ["true", "false"]):
             # remove single or double quotes from str(node)
-            bool_cleaned = str(node).replace('"', "").replace("'", "")
-            return parse_one(bool_cleaned)
+            bool_cleaned = node.sql(dialect="trino").replace('"', "").replace("'", "")
+            return sqlglot.parse_one(bool_cleaned)
     return node
 
 
 def warn_unnest(node):
     """If there is an unnest function call, add a warning to the top of the query"""
     if node.name.lower() in ["unnest", "explode"]:
-        return parse_one(
-            str(node)
+        return sqlglot.parse_one(
+            node.sql(dialect="trino")
             + (
                 "-- WARNING: You can't use explode/unnest inside SELECT anymore, it must be LATERAL "
                 + "or CROSS JOIN instead. Check out the docs here: https://dune.com/docs/reference/dune-v2/query-engine"
@@ -344,8 +349,8 @@ def warn_unnest(node):
 def warn_sequence(node):
     """If the query uses generate_series/sequence, add a warning that links to docs"""
     if node.name.lower() in ["generate_series", "sequence"]:
-        return parse_one(
-            str(node)
+        return sqlglot.parse_one(
+            node.sql(dialect="trino")
             + (
                 "-- WARNING: Check out the docs for example of time series generation: "
                 + "https://dune.com/docs/reference/dune-v2/query-engine/ "
@@ -372,8 +377,8 @@ def prep_query(query, dialect):
             flags=re.IGNORECASE,
         )
 
-    res = transpile(query, read=dialect, write="trino", pretty=True)[0]
-    expression_tree = parse_one(res)
+    res = sqlglot.transpile(query, read=dialect, write="trino", pretty=True)[0]
+    expression_tree = sqlglot.parse_one(res, read="trino")
     return expression_tree
 
 
@@ -399,7 +404,6 @@ def transform(query_tree, dialect, dataset):
             dex_trades_fixes,
             chain_where,
             bytearray_parameter_fix,
-            current_timestamp_now,
         ]
     else:
         transform_order = [
@@ -409,18 +413,11 @@ def transform(query_tree, dialect, dataset):
             cast_timestamp,
             warn_unnest,
             warn_sequence,
-            current_timestamp_now,
         ]
 
     for f in transform_order:
         query_tree = query_tree.transform(f)
     return query_tree
-
-
-def current_timestamp_now(node):
-    """Replace CURRENT_TIMESTAMP() with NOW(), CURRENT_TIMESTAMP() without arguments is not supported in Trino"""
-    replaced = str(node).replace("CURRENT_TIMESTAMP()", "NOW()")
-    return parse_one(replaced)
 
 
 def fix_bytearray_param_final(statement):
@@ -436,7 +433,7 @@ def fix_bytearray_param_final(statement):
 
 def statement_final_fixes(expression_tree):
     """operations below are to do some overall fixes to the query text"""
-    statement = expression_tree.sql()  # get the text statement
+    statement = expression_tree.sql(dialect="trino")  # get the text statement
 
     # Insert parameters again
     statement = statement.replace(quoted_param_left_placeholder, "{{")
