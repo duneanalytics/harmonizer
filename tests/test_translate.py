@@ -19,6 +19,7 @@ test_cases_sqlglot = [
     Case("sqlglot_test_cases/interval.in", "sqlglot_test_cases/interval.out", "spark", ""),
     Case("sqlglot_test_cases/matic.in", "sqlglot_test_cases/matic.out", "spark", ""),
     Case("sqlglot_test_cases/param.in", "sqlglot_test_cases/param.out", "postgres", ""),
+    Case("sqlglot_test_cases/aliases.in", "sqlglot_test_cases/aliases.out", "postgres", ""),
 ]
 
 
