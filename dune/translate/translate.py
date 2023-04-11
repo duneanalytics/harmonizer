@@ -7,8 +7,8 @@ from dune.translate.helpers import (
     prep_query,
     quoted_param_left_placeholder,
     quoted_param_right_placeholder,
-    statement_final_fixes,
-    transform,
+    add_warnings_and_banner,
+    transforms,
 )
 
 
@@ -23,10 +23,16 @@ def _translate_query_sqlglot(query, sqlglot_dialect, dataset=None):
     """Translate a query using SQLGLot plus custom rules"""
     try:
         # note that you can't use lower() in any returns, because that affects table name and parameters
+
+        # Insert parameter placeholders
+        query = query.replace("{{", quoted_param_left_placeholder).replace("}}", quoted_param_right_placeholder)
         query_tree = prep_query(query, sqlglot_dialect)
-        query_tree = transform(query_tree, sqlglot_dialect, dataset)
+        query_tree = transforms(query_tree, sqlglot_dialect, dataset)
         query = query_tree.sql(dialect="trino", pretty=True)
-        return statement_final_fixes(query)
+
+        # Insert params again
+        query = query.replace(quoted_param_left_placeholder, "{{").replace(quoted_param_right_placeholder, "}}")
+        return add_warnings_and_banner(query)
     except ParseError as e:
         # SQLGlot inserts terminal style colors to emphasize error location.
         # We remove these, as they mess up the formatting.

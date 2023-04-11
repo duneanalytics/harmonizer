@@ -7,6 +7,6 @@ GROUP BY
   2,
   3
 ORDER BY
-  a NULLS FIRST,
-  b NULLS FIRST,
-  c NULLS FIRST
+  a,
+  b,
+  c

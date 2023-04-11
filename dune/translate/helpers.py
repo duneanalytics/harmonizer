@@ -45,7 +45,7 @@ def recurse_where(node, required_tables, condition_add):
     for i, group in enumerate(match_groups):
         statement = statement.replace(group, f"{placeholder}{i}__)")
 
-    tables = sqlglot.parse_one(statement).find_all(sqlglot.exp.Table)
+    tables = sqlglot.parse_one(statement, read="trino").find_all(sqlglot.exp.Table)
     for table in tables:
         for req in required_tables:
             if req in str(table).replace('"', ""):
@@ -128,7 +128,7 @@ def chain_where_blockchain(node, blockchain):
     # only run this for the highest level select, then it will recurse down
     if node.key == "select" and node.parent is None:
         statement = recurse_where(node, required_tables, condition_add)  # function defined above
-        return sqlglot.parse_one(statement)
+        return sqlglot.parse_one(statement, read="trino")
     return node
 
 
@@ -178,7 +178,7 @@ def dex_trades_fixes(node):
                 flags=re.IGNORECASE,
             )
 
-            return sqlglot.parse_one(final_where)
+            return sqlglot.parse_one(final_where, read="trino")
     return node
 
 
@@ -228,7 +228,7 @@ def interval_fix(node):
                 .replace(param_left_placeholder, quoted_param_left_placeholder)
                 .replace(param_right_placeholder, quoted_param_right_placeholder)
             )
-            return sqlglot.parse_one(final_interval)
+            return sqlglot.parse_one(final_interval, read="trino")
     return node
 
 
@@ -236,7 +236,7 @@ def bytearray_parameter_fix(node):
     """Take care of parameters that use bytearrays"""
     if node.key == "eq":
         if all(
-            a_param in str(node).lower()
+            a_param in node.sql(dialect="trino").lower()
             for a_param in [
                 "0x",
                 "substring(",
@@ -252,8 +252,10 @@ def bytearray_parameter_fix(node):
                 + re.escape(quoted_param_right_placeholder)
                 + r"['\"].*?\)"
             )
-            match = re.search(pattern, str(node))
-            return sqlglot.parse_one(str(node).split("=")[0] + '= lower("{{' + match.group(1) + '}}")')
+            match = re.search(pattern, node.sql(dialect="trino"))
+            return sqlglot.parse_one(
+                node.sql(dialect="trino").split("=")[0] + '= lower("{{' + match.group(1) + '}}")', read="trino"
+            )
     return node
 
 
@@ -261,8 +263,8 @@ def table_replacement(node):
     """Table replacement logic for changes in schemas. only needed for migrations from Postgres."""
     if (
         isinstance(node, sqlglot.exp.Table)
-        and quoted_param_left_placeholder not in str(node)
-        and quoted_param_right_placeholder not in str(node)
+        and quoted_param_left_placeholder not in node.sql(dialect="trino")
+        and quoted_param_right_placeholder not in node.sql(dialect="trino")
     ):  # not a parameterized table name
         full_table_node = node.sql(dialect="trino").replace('"', "")
 
@@ -284,7 +286,7 @@ def table_replacement(node):
             if node.unalias().alias is not None:
                 # if an alias is used for the table, add it back
                 spell_table = spell_table + " as " + node.unalias().alias
-            return sqlglot.parse_one(spell_table)
+            return sqlglot.parse_one(spell_table, read="trino")
 
         # else if decoded table, then add _ethereum to the table name
         elif any(decoded in node.name for decoded in ["_evt_", "_call_"]):
@@ -293,7 +295,7 @@ def table_replacement(node):
             if node.unalias().alias is not None:
                 # if an alias is used, add it back on
                 chain_added_table = chain_added_table + " as " + node.unalias().alias
-            return sqlglot.parse_one(chain_added_table)
+            return sqlglot.parse_one(chain_added_table, read="trino")
 
     # otherwise it's some unknown/CTE, so we don't change anything
     return node
@@ -304,8 +306,7 @@ def cast_numeric(node):
     and it has amount/value in the name, cast to double"""
     if node.key == "column":
         if any(val in node.name.lower() for val in ["amount", "value"]):
-            return sqlglot.parse_one("cast(" + node.name + " as double)")
-            return sqlglot.parse_one("cast(" + node.name + " as double)")
+            return sqlglot.parse_one("cast(" + node.name + " as double)", read="trino")
     return node
 
 
@@ -313,13 +314,13 @@ def cast_timestamp(node):
     if node.key == "literal":
         # and contains 'yyyy-mm-dd' format then cast to timestamp
         if re.search(r"\d{4}-\d{2}-\d{2}", node.sql(dialect="trino")):
-            return sqlglot.parse_one("timestamp " + node.sql(dialect="trino"))
+            return sqlglot.parse_one("timestamp " + node.sql(dialect="trino"), read="trino")
 
         # or if it is a param that contains date/time
         pattern = re.escape(quoted_param_left_placeholder) + r"(.*?)" + re.escape(quoted_param_right_placeholder)
         match = re.search(pattern, node.sql(dialect="trino"))
         if match and any(d in node.sql(dialect="trino").lower() for d in ["date", "time"]):
-            return sqlglot.parse_one("timestamp '{{" + match.group(1) + "}}'")
+            return sqlglot.parse_one("timestamp '{{" + match.group(1) + "}}'", read="trino")
     return node
 
 
@@ -327,9 +328,9 @@ def fix_boolean(node):
     """If node.key is 'literal' and contains 'true' or 'false' then cast to boolean"""
     if node.key == "literal":
         if any(boolean in node.sql(dialect="trino").lower() for boolean in ["true", "false"]):
-            # remove single or double quotes from str(node)
+            # remove single or double quotes
             bool_cleaned = node.sql(dialect="trino").replace('"', "").replace("'", "")
-            return sqlglot.parse_one(bool_cleaned)
+            return sqlglot.parse_one(bool_cleaned, read="trino")
     return node
 
 
@@ -341,7 +342,8 @@ def warn_unnest(node):
             + (
                 "-- WARNING: You can't use explode/unnest inside SELECT anymore, it must be LATERAL "
                 + "or CROSS JOIN instead. Check out the docs here: https://dune.com/docs/reference/dune-v2/query-engine"
-            )
+            ),
+            read="trino",
         )
     return node
 
@@ -354,7 +356,8 @@ def warn_sequence(node):
             + (
                 "-- WARNING: Check out the docs for example of time series generation: "
                 + "https://dune.com/docs/reference/dune-v2/query-engine/ "
-            )
+            ),
+            read="trino",
         )
     return node
 
@@ -382,9 +385,26 @@ def prep_query(query, dialect):
     return expression_tree
 
 
-def transform(query_tree, dialect, dataset):
-    """go iteratively through every node in the query with different types of parsing fixes"""
-    # order matters here
+def spell_rename(query):
+    """Rename a column in a spell, there might be more of these"""
+    return sqlglot.parse_one(query.sql(dialect="trino").replace("usd_amount", "amount_usd"), read="trino")
+
+
+def bytea2numeric(query_tree):
+    """Replace and warn about bytearray functions"""
+    query = query_tree.sql(dialect="trino")
+    if "bytea2numeric" in query.lower():
+        query = query.replace("bytea2numeric", "bytearray_to_bigint")
+        query = (
+            "\n\n/* !Bytea warning: We now have new bytearray functions to cover conversions and stuff like "
+            + "length, concat, substring, etc. Check out the docs here: "
+            + "https://dune.com/docs/reference/dune-v2/query-engine/#byte-array-to-numeric-functions */"
+        ) + query
+    return sqlglot.parse_one(query, read="trino")
+
+
+def transforms(query_tree, dialect, dataset):
+    """Apply several transforms to the query in order. Each transform takes and returns a sqlglot.Expression"""
     if dialect == "postgres":
         # Add an appropriate blockchain = '<chain>' filter for trades, tokens, and prices tables.
         chain_where = {
@@ -404,6 +424,8 @@ def transform(query_tree, dialect, dataset):
             dex_trades_fixes,
             chain_where,
             bytearray_parameter_fix,
+            spell_rename,
+            bytea2numeric,
         ]
     else:
         transform_order = [
@@ -413,6 +435,7 @@ def transform(query_tree, dialect, dataset):
             cast_timestamp,
             warn_unnest,
             warn_sequence,
+            bytea2numeric,
         ]
 
     for f in transform_order:
@@ -424,29 +447,14 @@ def fix_bytearray_param_final(statement):
     """
     fixing parameter bytearrays and adding a warning to the top,
     they should be the only ones with lower('{{ address }}') kind of syntax
-    all because you can't have just {{ }} sitting without quotes in sqlglot.
     """
     pattern = r"lower\(\s*['\"]\{\{(.*?)\}\}['\"]\s*\)"
     statement = re.sub(pattern, r"{{\1}}", statement, flags=re.IGNORECASE)
     return statement
 
 
-def statement_final_fixes(query):
-    """operations below are to do some overall fixes to the query text"""
-    # Insert parameters again
-    query = query.replace(quoted_param_left_placeholder, "{{")
-    query = query.replace(quoted_param_right_placeholder, "}}")
-
-    # replace and warn about bytearray functions
-    if "bytea2numeric" in query.lower():
-        query = query.replace("bytea2numeric", "bytearray_to_bigint")
-
-        query = (
-            "\n\n/* !Bytea warning: We now have new bytearray functions such as to cover conversions and stuff like "
-            + "length, concat, substring, etc. Check out the docs here: "
-            + "https://dune.com/docs/reference/dune-v2/query-engine/#byte-array-to-numeric-functions */"
-        ) + query
-
+def add_warnings_and_banner(query):
+    """Look for a few cases of things we don't fix and add a warning, and add a success banner at top"""
     if '= LOWER("{{' in query:
         query = (
             "\n\n/* !Bytea parameter warning: Make sure to change \\x to 0x in the parameters, bytea types are "
@@ -467,14 +475,12 @@ def statement_final_fixes(query):
             + query
         )
 
-    query = query.replace("usd_amount", "amount_usd")  # spell specific column rename, there might be more of these.
-
     query = fix_bytearray_param_final(query)  # fixing parameter bytearrays and adding a warning to the top
 
     # adding reminder to switch engine and come to discord
     # TODO: this text should be added after all translation steps
     (
-        """/* Migration success :)
+        """/* Migration success! :)
 
     There are some cases such as unnest/sequence and array/json functions the migrator won't take care of for you
     (but we have examples of in the docs linked below!)
