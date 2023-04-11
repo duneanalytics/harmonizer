@@ -477,20 +477,10 @@ def add_warnings_and_banner(query):
 
     query = fix_bytearray_param_final(query)  # fixing parameter bytearrays and adding a warning to the top
 
-    # adding reminder to switch engine and come to discord
-    # TODO: this text should be added after all translation steps
-    (
-        """/* Migration success! :)
-
-    There are some cases such as unnest/sequence and array/json functions the migrator won't take care of for you
-    (but we have examples of in the docs linked below!)
-
-    If you're still running into issues, check out the doc examples https://dune.com/docs/reference/dune-v2/query-engine
-    or reach out to us in the Dune discord in the #dune-sql channel.
-    */
+    # add note at top
+    return (
+        """/* Success! If you're still running into issues, check out https://dune.com/docs/query/syntax-differences/ or reach out in the #dune-sql Discord channel. */
 
 """
         + query
     )
-
-    return query
