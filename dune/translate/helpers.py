@@ -394,13 +394,20 @@ def bytea2numeric(query_tree):
     """Replace and warn about bytearray functions"""
     query = query_tree.sql(dialect="trino")
     if "bytea2numeric" in query.lower():
-        query = query.replace("bytea2numeric", "bytearray_to_bigint")
+        query = re.sub("bytea2numeric", "bytearray_to_bigint", query, flags=re.IGNORECASE)
         query = (
-            "\n\n/* !Bytea warning: We now have new bytearray functions to cover conversions and stuff like "
-            + "length, concat, substring, etc. Check out the docs here: "
-            + "https://dune.com/docs/reference/dune-v2/query-engine/#byte-array-to-numeric-functions */"
+            "/* !Bytea warning: We now have new bytearray functions to cover conversions and stuff like "
+            "length, concat, substring, etc. Check out the docs here: "
+            "https://dune.com/docs/reference/dune-v2/query-engine/#byte-array-to-numeric-functions */"
+            "\n\n"
         ) + query
     return sqlglot.parse_one(query, read="trino")
+
+
+def fix_bytearray_param(query):
+    """Remove lower function call from bytearray parameters"""
+    pattern = r"lower\(\s*['\"]\{\{(.*?)\}\}['\"]\s*\)"
+    return re.sub(pattern, r"{{\1}}", query, flags=re.IGNORECASE)
 
 
 def transforms(query_tree, dialect, dataset):
@@ -443,44 +450,33 @@ def transforms(query_tree, dialect, dataset):
     return query_tree
 
 
-def fix_bytearray_param_final(statement):
-    """
-    fixing parameter bytearrays and adding a warning to the top,
-    they should be the only ones with lower('{{ address }}') kind of syntax
-    """
-    pattern = r"lower\(\s*['\"]\{\{(.*?)\}\}['\"]\s*\)"
-    statement = re.sub(pattern, r"{{\1}}", statement, flags=re.IGNORECASE)
-    return statement
-
-
 def add_warnings_and_banner(query):
-    """Look for a few cases of things we don't fix and add a warning, and add a success banner at top"""
-    if '= LOWER("{{' in query:
+    """Add a success banner at the top, and look for a few cases of things we don't fix and add a warning if present"""
+    if "lower('{{" in query.lower():
         query = (
-            "\n\n/* !Bytea parameter warning: Make sure to change \\x to 0x in the parameters, bytea types are "
-            + "native now (no need for quotes or lower or \\x)' */"
+            "/* !Bytea parameter warning: Make sure to change \\x to 0x in the parameters, bytea types are "
+            "native now (no need for quotes or lower or \\x)' */"
+            "\n\n"
         ) + query
 
     # if brackets [ ] are used, warn about array indexing
     if re.search(r"\[.*\]", query):
         query = (
-            "\n\n/* !Array warning: Arrays in dune SQL are indexed from 1, not 0. "
-            + "The migrator will not catch this if you indexed using variables*/"
+            "/* !Array warning: Arrays in dune SQL are indexed from 1, not 0. "
+            "The migrator will not catch this if you indexed using variables */"
+            "\n\n"
         ) + query
 
     if "dune_user_generated" in query.lower():
         query = (
-            "\n\n/* !Generated view warning: you can't query v1 views anymore. All queries in DuneSQL are by "
-            + "default views though (try querying the table 'query_1747157') */"
-            + query
-        )
-
-    query = fix_bytearray_param_final(query)  # fixing parameter bytearrays and adding a warning to the top
+            "/* !Generated view warning: you can't query views in dune_user_generated anymore. "
+            "All queries in DuneSQL are by default views though (try querying the table 'query_1747157') */"
+            "\n\n"
+        ) + query
 
     # add note at top
     return (
-        """/* Success! If you're still running into issues, check out https://dune.com/docs/query/syntax-differences/ or reach out in the #dune-sql Discord channel. */
-
-"""
-        + query
-    )
+        "/* Success! If you're still running into issues, check out https://dune.com/docs/query/syntax-differences/ "
+        "or reach out in the #dune-sql Discord channel. */"
+        "\n\n"
+    ) + query

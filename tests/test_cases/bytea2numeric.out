@@ -2,4 +2,4 @@
 
 /* !Bytea warning: We now have new bytearray functions to cover conversions and stuff like length, concat, substring, etc. Check out the docs here: https://dune.com/docs/reference/dune-v2/query-engine/#byte-array-to-numeric-functions */
 SELECT
-  BYTEA2NUMERIC(data)
+  BYTEARRAY_TO_BIGINT(data)

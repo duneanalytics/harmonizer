@@ -23,6 +23,7 @@ test_cases = [
     Case("test_cases/now.in", "test_cases/now.out", "postgres", ""),
     Case("test_cases/bytea2numeric.in", "test_cases/bytea2numeric.out", "postgres", ""),
     Case("test_cases/bytea2numeric.in", "test_cases/bytea2numeric.out", "spark", ""),
+    Case("test_cases/bytea_param.in", "test_cases/bytea_param.out", "spark", ""),
 ]
 
 

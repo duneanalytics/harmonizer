@@ -9,6 +9,7 @@ from dune.translate.helpers import (
     quoted_param_right_placeholder,
     add_warnings_and_banner,
     transforms,
+    fix_bytearray_param,
 )
 
 
@@ -24,14 +25,16 @@ def _translate_query_sqlglot(query, sqlglot_dialect, dataset=None):
     try:
         # note that you can't use lower() in any returns, because that affects table name and parameters
 
-        # Insert parameter placeholders
+        # Insert placeholders for the parameters we use in Dune (`{{ param }}`), SQLGlot doesn't handle those
         query = query.replace("{{", quoted_param_left_placeholder).replace("}}", quoted_param_right_placeholder)
         query_tree = prep_query(query, sqlglot_dialect)
         query_tree = transforms(query_tree, sqlglot_dialect, dataset)
         query = query_tree.sql(dialect="trino", pretty=True)
 
-        # Insert params again
+        # Replace placeholders with Dune params again
         query = query.replace(quoted_param_left_placeholder, "{{").replace(quoted_param_right_placeholder, "}}")
+        query = fix_bytearray_param(query)
+
         return add_warnings_and_banner(query)
     except ParseError as e:
         # SQLGlot inserts terminal style colors to emphasize error location.
