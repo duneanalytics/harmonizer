@@ -22,5 +22,7 @@ jobs:
         run: poetry install
       - name: Run tests
         run: poetry run pytest
-      - name: Lint files using Ruff
-        run: poetry run ruff .
+      - name: Lint files
+        run: |
+          poetry run black . --check
+          poetry run ruff .
