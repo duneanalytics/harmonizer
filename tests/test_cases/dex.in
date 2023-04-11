@@ -1,0 +1,9 @@
+        SELECT  project AS "Project",
+                SUM(usd_amount) as usd_volume
+        FROM (SELECT * FROM (SELECT * FROM dex."trades") a) d --test comment
+        LEFT JOIN prices.usd p ON p.minute = date_trunc('minute', d.block_time)
+        WHERE block_time > '2019-01-01'
+        AND block_time > '{{start_date}}'
+        AND block_time > now() - interval '1 weeks'
+        AND category = 'DEX'
+        GROUP BY "Project"

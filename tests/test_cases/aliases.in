@@ -1,0 +1,1 @@
+SELECT 1 AS a, 2 AS b, 3 AS c GROUP BY a, b, c ORDER BY a, b, c

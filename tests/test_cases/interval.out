@@ -1,0 +1,7 @@
+/* Success! If you're still running into issues, check out https://dune.com/docs/query/syntax-differences/ or reach out in the #dune-sql Discord channel. */
+
+SELECT
+  evt_block_time + INTERVAL '1' day * term AS can_claim_day,
+  term,
+  rank
+FROM xen_ethereum.XENCrypto_evt_RankClaimed

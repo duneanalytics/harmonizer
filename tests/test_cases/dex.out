@@ -1,0 +1,24 @@
+/* Success! If you're still running into issues, check out https://dune.com/docs/query/syntax-differences/ or reach out in the #dune-sql Discord channel. */
+
+SELECT
+  project AS "Project",
+  SUM(CAST(amount_usd AS DOUBLE)) AS usd_volume
+FROM (
+  SELECT
+    *
+  FROM (
+    SELECT
+      *
+    FROM dex."trades"
+  ) AS a
+) AS d /* test comment */
+LEFT JOIN prices.usd AS p
+  ON p.minute = DATE_TRUNC('minute', d.block_time)
+WHERE
+  p.blockchain = 'ethereum'
+  AND block_time > CAST('2019-01-01' AS TIMESTAMP)
+  AND block_time > CAST('{{start_date}}' AS TIMESTAMP)
+  AND block_time > CURRENT_TIMESTAMP - INTERVAL '7' day /* week doesnt work in DuneSQL */
+  AND category = 'DEX'
+GROUP BY
+  1
