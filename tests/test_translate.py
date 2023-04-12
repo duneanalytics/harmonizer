@@ -15,15 +15,18 @@ class Case:
 
 
 test_cases = [
+    # PostgreSQL
     Case("test_cases/dex.in", "test_cases/dex.out", "postgres", "ethereum"),
-    Case("test_cases/interval.in", "test_cases/interval.out", "spark", ""),
-    Case("test_cases/matic.in", "test_cases/matic.out", "spark", ""),
     Case("test_cases/param.in", "test_cases/param.out", "postgres", ""),
     Case("test_cases/aliases.in", "test_cases/aliases.out", "postgres", ""),
     Case("test_cases/now.in", "test_cases/now.out", "postgres", ""),
     Case("test_cases/bytea2numeric.in", "test_cases/bytea2numeric.out", "postgres", ""),
+    # Spark SQL
+    Case("test_cases/interval.in", "test_cases/interval.out", "spark", ""),
+    Case("test_cases/matic.in", "test_cases/matic.out", "spark", ""),
     Case("test_cases/bytea2numeric.in", "test_cases/bytea2numeric.out", "spark", ""),
     Case("test_cases/bytea_param.in", "test_cases/bytea_param.out", "spark", ""),
+    Case("test_cases/bytea_lower.in", "test_cases/bytea_lower.out", "spark", ""),
 ]
 
 

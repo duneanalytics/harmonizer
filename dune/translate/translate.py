@@ -10,6 +10,7 @@ from dune.translate.helpers import (
     add_warnings_and_banner,
     transforms,
     fix_bytearray_param,
+    fix_bytearray_lower,
 )
 
 
@@ -34,6 +35,7 @@ def _translate_query_sqlglot(query, sqlglot_dialect, dataset=None):
         # Replace placeholders with Dune params again
         query = query.replace(quoted_param_left_placeholder, "{{").replace(quoted_param_right_placeholder, "}}")
         query = fix_bytearray_param(query)
+        query = fix_bytearray_lower(query)
 
         return add_warnings_and_banner(query)
     except ParseError as e:
