@@ -15,10 +15,10 @@ FROM (
 LEFT JOIN prices.usd AS p
   ON p.minute = DATE_TRUNC('minute', d.block_time)
 WHERE
-  p.blockchain = 'ethereum'
+  p.blockchain = 'polygon'
   AND block_time > CAST('2019-01-01' AS TIMESTAMP)
   AND block_time > CAST('{{start_date}}' AS TIMESTAMP)
-  AND block_time > CURRENT_TIMESTAMP - INTERVAL '7' day /* week doesnt work in DuneSQL */
+  AND block_time > CURRENT_TIMESTAMP - INTERVAL '7' day /* week doesn't work in DuneSQL */
   AND category = 'DEX'
 GROUP BY
   1

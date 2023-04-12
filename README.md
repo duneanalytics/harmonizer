@@ -15,18 +15,27 @@ Install with
 pip install dune-query-translator
 ```
 
-Now import the `translate` function in your code:
+Now import the `migrate_` functions in your code:
 
 ```python
-from dune.translate.translate import translate
+from dune.translate import migrate_spark, migrate_postgres
 ```
 
-The function takes three arguments: A query, a dialect, and a Dune dataset name (`ethereum`, `bnb`, etc).
+with function signatures
+
+```python
+def migrate_spark(query: str) -> str:
+    ...
+
+def migrate_postgres(query: str, dataset: str) -> str:
+    ...
+```
 
 ## Contributing
 
-Contributions are very welcome.
-Please open an issue or a PR and we will get back to you within a week.
+Contributions are very welcome!
+
+Please open an issue or a PR, and we will get back to you as soon as we can.
 
 ## Development
 
@@ -49,8 +58,8 @@ Run tests with
 poetry run pytest
 ```
 
-We test on examples in the `sqlglot_test_cases` directory.
-To force an update of the expected outputs, do
+We test on examples in the `test_cases` directory.
+To force an update of the expected outputs, run the `update_expected_outputs` script like below
 
 ```
 poetry run python tests/update_expected_outputs.py

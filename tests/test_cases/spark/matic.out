@@ -2,7 +2,7 @@
 
 WITH transfers_to AS (
   SELECT
-    "to" AS wallet,
+    'to' AS wallet,
     SUM(TRY_CAST(CAST(value AS DOUBLE) AS DOUBLE)) / 1e18 AS amount
   FROM erc20_polygon.evt_Transfer
   WHERE
@@ -11,7 +11,7 @@ WITH transfers_to AS (
     1
 ), transfers_from AS (
   SELECT
-    "from" AS wallet,
+    'from' AS wallet,
     (
       -1
     ) * SUM(TRY_CAST(CAST(value AS DOUBLE) AS DOUBLE)) / 1e18 AS amount
