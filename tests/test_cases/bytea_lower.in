@@ -1,0 +1,1 @@
+select lower('0xfoo'), 'hello'
