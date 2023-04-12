@@ -6,7 +6,7 @@ WITH transfers_to AS (
     SUM(TRY_CAST(CAST(value AS DOUBLE) AS DOUBLE)) / 1e18 AS amount
   FROM erc20_polygon.evt_Transfer
   WHERE
-    contract_address = LOWER('0xea1132120ddcdda2f119e99fa7a27a0d036f7ac9')
+    contract_address = 0xea1132120ddcdda2f119e99fa7a27a0d036f7ac9
   GROUP BY
     1
 ), transfers_from AS (
@@ -17,7 +17,7 @@ WITH transfers_to AS (
     ) * SUM(TRY_CAST(CAST(value AS DOUBLE) AS DOUBLE)) / 1e18 AS amount
   FROM erc20_polygon.evt_Transfer
   WHERE
-    contract_address = LOWER('0xea1132120ddcdda2f119e99fa7a27a0d036f7ac9')
+    contract_address = 0xea1132120ddcdda2f119e99fa7a27a0d036f7ac9
   GROUP BY
     1
 ), all_opers AS (
@@ -38,6 +38,6 @@ GROUP BY
   1
 HAVING
   SUM(CAST(amount AS DOUBLE)) >= 0.1
-  AND wallet <> LOWER('0x0000000000000000000000000000000000000000')
+  AND wallet <> 0x0000000000000000000000000000000000000000
 ORDER BY
   2 DESC
