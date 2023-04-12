@@ -1,7 +1,7 @@
 from pathlib import Path
 
-from dune.translate.translate import translate
-from tests.test_translate import test_cases
+from dune.translate.translate import migrate
+from tests.cases import postgres_test_cases
 
 
 def update_test_case(tc):
@@ -11,11 +11,11 @@ def update_test_case(tc):
     out_filename = p / tc.out_filename
     with open(in_filename, "r") as f:
         query = f.read()
-    output = translate(query, tc.dialect, tc.dataset)
+    output = migrate(query, tc.dialect, tc.dataset)
     with open(out_filename, "w") as f:
         f.write(output)
 
 
 if __name__ == "__main__":
-    for testcase in test_cases:
+    for testcase in postgres_test_cases:
         update_test_case(testcase)

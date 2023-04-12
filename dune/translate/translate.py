@@ -1,43 +1,67 @@
 import re
 
+import sqlglot
 from sqlglot import ParseError
 
-from dune.translate.errors import TranslationError
+from dune.translate.errors import DuneTranslationError
 from dune.translate.helpers import (
-    prep_query,
-    quoted_param_left_placeholder,
-    quoted_param_right_placeholder,
     add_warnings_and_banner,
-    transforms,
-    fix_bytearray_param,
     fix_bytearray_lower,
+    fix_bytearray_param,
+    prep_query,
+    double_quoted_param_left_placeholder,
+    double_quoted_param_right_placeholder,
+    sqlglot_postgres_transforms,
+    sqlglot_spark_transforms,
+    single_quoted_param_left_placeholder,
+    single_quoted_param_right_placeholder,
 )
 
 
-def translate(query, dialect, dataset):
-    """Translate a query into DuneSQL"""
-    if dialect not in ("spark", "postgres"):
-        raise ValueError(f"Unknown dialect: {dialect}")
-    return _translate_query_sqlglot(query, dialect, dataset.lower())
+def _clean_dataset(dataset):
+    for d in ("gnosis", "optimism", "bnb", "polygon", "ethereum"):
+        if d in dataset.lower():
+            return d
+    raise ValueError(f"Unknown dataset: {dataset}")
 
 
-def _translate_query_sqlglot(query, sqlglot_dialect, dataset=None):
+def _translate_query(query, sqlglot_dialect, dataset=None):
     """Translate a query using SQLGLot plus custom rules"""
     try:
-        # note that you can't use lower() in any returns, because that affects table name and parameters
-
         # Insert placeholders for the parameters we use in Dune (`{{ param }}`), SQLGlot doesn't handle those
-        query = query.replace("{{", quoted_param_left_placeholder).replace("}}", quoted_param_right_placeholder)
-        query_tree = prep_query(query, sqlglot_dialect)
-        query_tree = transforms(query_tree, sqlglot_dialect, dataset)
+        query = query.replace("{{", double_quoted_param_left_placeholder).replace(
+            "}}", double_quoted_param_right_placeholder
+        )
+        query = prep_query(query)
+
+        # Transpile to Trino
+        query = sqlglot.transpile(query, read=sqlglot_dialect, write="trino", pretty=True)[0]
+
+        # Perform custom transformations using SQLGlot's parsed representation
+        if sqlglot_dialect == "spark":
+            query_tree = sqlglot_spark_transforms(query)
+        elif sqlglot_dialect == "postgres":
+            # Update bytearray syntax
+            query = query.replace("\\x", "0x")
+            query_tree = sqlglot_postgres_transforms(query, dataset)
+
+        # Turn back to SQL
         query = query_tree.sql(dialect="trino", pretty=True)
 
         # Replace placeholders with Dune params again
-        query = query.replace(quoted_param_left_placeholder, "{{").replace(quoted_param_right_placeholder, "}}")
+        query = (
+            query.replace(double_quoted_param_left_placeholder, "{{")
+            .replace(double_quoted_param_right_placeholder, "}}")
+            .replace(single_quoted_param_left_placeholder, "{{")
+            .replace(single_quoted_param_right_placeholder, "}}")
+        )
+
+        # Non-SQLGlot transforms
         query = fix_bytearray_param(query)
         query = fix_bytearray_lower(query)
 
         return add_warnings_and_banner(query)
+
     except ParseError as e:
         # SQLGlot inserts terminal style colors to emphasize error location.
         # We remove these, as they mess up the formatting.
@@ -46,8 +70,8 @@ def _translate_query_sqlglot(query, sqlglot_dialect, dataset=None):
             str(e)
             .replace("\x1b[4m", "")
             .replace("\x1b[0m", "")
-            .replace(quoted_param_left_placeholder, "{{")
-            .replace(quoted_param_right_placeholder, "}}")
+            .replace(double_quoted_param_left_placeholder, "{{")
+            .replace(double_quoted_param_right_placeholder, "}}")
         )
         # Remove Line and Column information, since it's outdated due to previous transforms.
         error_message = re.sub(
@@ -55,4 +79,4 @@ def _translate_query_sqlglot(query, sqlglot_dialect, dataset=None):
             ".",
             error_message,
         )
-        raise TranslationError(error_message)
+        raise DuneTranslationError(error_message)
