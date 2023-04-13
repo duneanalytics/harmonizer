@@ -1,4 +1,4 @@
-from dune.translate.translate import _translate_query, _clean_dataset
+from dune.translate.translate import _clean_dataset, _translate_query
 
 
 def migrate_spark(query):
