@@ -6,15 +6,15 @@ from sqlglot import ParseError
 from dune.translate.errors import DuneTranslationError
 from dune.translate.helpers import (
     add_warnings_and_banner,
+    double_quoted_param_left_placeholder,
+    double_quoted_param_right_placeholder,
     fix_bytearray_lower,
     fix_bytearray_param,
     prep_query,
-    double_quoted_param_left_placeholder,
-    double_quoted_param_right_placeholder,
-    sqlglot_postgres_transforms,
-    sqlglot_spark_transforms,
     single_quoted_param_left_placeholder,
     single_quoted_param_right_placeholder,
+    sqlglot_postgres_transforms,
+    sqlglot_spark_transforms,
 )
 
 
