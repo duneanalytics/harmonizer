@@ -4,8 +4,14 @@ A library we use in the Dune app to translate Dune queries from PostgreSQL and S
 
 A query is translated through two steps.
 
-1. We use [SQLGlot](https://github.com/tobymao/sqlglot) to transpile the query.
-2. We pass the query through some handwritten rules for additional changes.
+1. We use [SQLGlot](https://github.com/tobymao/sqlglot) to transpile the query. 
+This is an excellent tool which parses a SQL query into an Abstract Syntax Tree (AST), 
+and then translates it to a different dialect. 
+We use it to translate from Spark SQL to DuneSQL, and from PostgreSQL to DuneSQL.
+2. We pass the query through custom rules to make additional changes to the query.
+Examples of such rules are
+- mapping known changes in table names from the legacy Postgres datasets to corresponding table names in DuneSQL
+- translating string literals '0x...' to 0x... in DuneSQL, since we [support native hex literals](https://dune.com/docs/query/DuneSQL-reference/datatypes/#varbinary).
 
 ## Getting started
 
