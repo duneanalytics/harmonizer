@@ -11,9 +11,10 @@ from dune.translate.custom_transforms import (
     fix_bytearray_param,
     postgres_transforms,
     prep_query,
+    remove_quotes_around_0x_strings,
     single_quoted_param_left_placeholder,
     single_quoted_param_right_placeholder,
-    spark_transforms, remove_quotes_around_0x_strings,
+    spark_transforms,
 )
 from dune.translate.errors import DuneTranslationError
 
