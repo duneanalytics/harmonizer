@@ -431,12 +431,14 @@ def remove_quotes_around_0x_strings(query):
     substituted = re.sub(pattern, r"0x\1", query, flags=re.IGNORECASE)
     return substituted
 
+
 def spark_function_replacements(node):
     """Replace the Spark timestamp() function with Trino's from_unixtime() function"""
     query = node.sql(dialect="trino")
     if "timestamp(" in query.lower():
         query = re.sub("timestamp", "from_unixtime", query, flags=re.IGNORECASE)
     return sqlglot.parse_one(query, read="trino")
+
 
 def spark_transforms(query):
     """Apply a series of transforms to the query tree, recursively using SQLGlot's recursive transform function.
