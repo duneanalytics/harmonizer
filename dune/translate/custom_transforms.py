@@ -414,7 +414,7 @@ def spark_transforms(query):
     """Apply a series of transforms to the query tree, recursively using SQLGlot's recursive transform function.
 
     Each transform takes and returns a sqlglot.Expression"""
-    query_tree = sqlglot.parse_one(query, read="trino")
+    query_tree = sqlglot.parse_one(query, read="spark")
     transforms = (
         interval_fix,
         fix_boolean,
