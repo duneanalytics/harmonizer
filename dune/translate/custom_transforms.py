@@ -223,7 +223,7 @@ def interval_fix(node):
                 "year",
             ]
         ):
-            if granularity.endswith('s'):
+            if granularity.endswith("s"):
                 granularity = granularity[:-1]
             if granularity == "week":  # we don't have week in Trino SQL
                 value = int(value) * 7

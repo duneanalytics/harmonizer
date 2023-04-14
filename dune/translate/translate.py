@@ -3,19 +3,19 @@ import re
 import sqlglot
 from sqlglot import ParseError
 
-from dune.translate.errors import DuneTranslationError
 from dune.translate.custom_transforms import (
     add_warnings_and_banner,
     double_quoted_param_left_placeholder,
     double_quoted_param_right_placeholder,
     fix_bytearray_lower,
     fix_bytearray_param,
+    postgres_transforms,
     prep_query,
     single_quoted_param_left_placeholder,
     single_quoted_param_right_placeholder,
-    postgres_transforms,
     spark_transforms,
 )
+from dune.translate.errors import DuneTranslationError
 
 
 def _clean_dataset(dataset):

@@ -1,7 +1,7 @@
 from pathlib import Path
 
-from dune.translate import migrate_spark, migrate_postgres
-from tests.cases import postgres_test_cases, SparkTestCase, PostgresTestCase, spark_test_cases
+from dune.translate import migrate_postgres, migrate_spark
+from tests.cases import PostgresTestCase, SparkTestCase, postgres_test_cases, spark_test_cases
 
 
 def update_test_case(tc):
