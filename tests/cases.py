@@ -31,4 +31,5 @@ spark_test_cases = [
     SparkTestCase("test_cases/spark/bytea_param.in", "test_cases/spark/bytea_param.out"),
     SparkTestCase("test_cases/spark/bytea_lower.in", "test_cases/spark/bytea_lower.out"),
     SparkTestCase("test_cases/param.in", "test_cases/param.out"),
+    SparkTestCase("test_cases/spark/quoted_column.in", "test_cases/spark/quoted_column.out"),
 ]

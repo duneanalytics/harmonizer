@@ -19,7 +19,8 @@ def extract_nested_select(text):
                 end = i + 1
                 substring = text[stack[0] : end].strip()
                 stack = []  # reset the stack after an end is found
-                if re.search(r"^\(\s*select\b", substring, re.IGNORECASE):  # if substring starts with "(select " then
+                # if substring starts with "(select "
+                if re.search(r"^\(\s*select\b", substring, re.IGNORECASE):
                     results.append(substring)
     return results
 
@@ -113,9 +114,6 @@ def recurse_where(node, required_tables, condition_add):
     return statement
 
 
-# SQLGlot functions
-
-
 def chain_where_blockchain(node, blockchain):
     # add a blockchain = 'ethereum' to the WHERE statement for trades, tokens, and prices tables.
     required_tables = [
@@ -142,6 +140,7 @@ chain_where_polygon = partial(chain_where_blockchain, blockchain="polygon")
 
 
 def dex_trades_fixes(node):
+    """Fixes to dex.trades"""
     # doesn't matter if subquery or not, it will replace the found filter.
     if node.key == "select":
         if "dex.in.trades" in node.sql(dialect="trino").replace('"', ""):
@@ -192,7 +191,7 @@ single_quoted_param_left_placeholder = f"'{param_left_placeholder}"
 single_quoted_param_right_placeholder = f"{param_right_placeholder}'"
 
 
-# TODO: Remove this once https://github.com/tobymao/sqlglot/issues/1410 is fixed
+# TODO: Remove or simplify once the fix to https://github.com/tobymao/sqlglot/issues/1410 is released
 def interval_fix(node):
     """Handle interval syntax change from Spark to Trino"""
     if node.key == "interval":
@@ -208,8 +207,10 @@ def interval_fix(node):
         # no match, return
         if len(regex_matches) == 0:
             return node
-        identifier = " ".join(regex_matches)
-        value, granularity, *rest = identifier.split()
+        interval_argument = " ".join(regex_matches)
+        if len(interval_argument.split()) == 1:
+            return node
+        value, granularity, *rest = interval_argument.split()
         if any(
             known_granularity in granularity.lower()
             for known_granularity in [
@@ -222,7 +223,7 @@ def interval_fix(node):
                 "year",
             ]
         ):
-            if granularity[-1] == "s":
+            if granularity.endswith("s"):
                 granularity = granularity[:-1]
             if granularity == "week":  # we don't have week in Trino SQL
                 value = int(value) * 7
@@ -242,12 +243,12 @@ def bytearray_parameter_fix(node):
     if node.key == "eq":
         if all(
             a_param in node.sql(dialect="trino").lower()
-            for a_param in [
+            for a_param in (
                 "0x",
                 "substring(",
                 double_quoted_param_left_placeholder,
                 double_quoted_param_right_placeholder,
-            ]
+            )
         ):
             # include param_left variables in regex pattern
             pattern = (
@@ -268,7 +269,7 @@ def cast_numeric(node):
     """if a column is being added, subtracted, multiplied, divided, etc,
     and it has amount/value in the name, cast to double"""
     if node.key == "column":
-        if any(val in node.name.lower() for val in ["amount", "value"]):
+        if any(val in node.name.lower() for val in ("amount", "value")):
             return sqlglot.parse_one("cast(" + node.name + " as double)", read="trino")
     return node
 
@@ -294,7 +295,7 @@ def cast_timestamp(node):
 def fix_boolean(node):
     """If node.key is 'literal' and contains 'true' or 'false' then cast to boolean"""
     if node.key == "literal":
-        if any(boolean in node.sql(dialect="trino").lower() for boolean in ["true", "false"]):
+        if any(boolean in node.sql(dialect="trino").lower() for boolean in ("true", "false")):
             # remove single or double quotes
             bool_cleaned = node.sql(dialect="trino").replace('"', "").replace("'", "")
             return sqlglot.parse_one(bool_cleaned, read="trino")
@@ -385,7 +386,7 @@ def chain_where(dataset):
     }[dataset]
 
 
-def sqlglot_postgres_transforms(query, dataset):
+def postgres_transforms(query, dataset):
     """Apply a series of transforms to the query tree, recursively using SQLGlot's recursive transform function.
 
     Each transform takes and returns a sqlglot.Expression"""
@@ -409,11 +410,11 @@ def sqlglot_postgres_transforms(query, dataset):
     return query_tree
 
 
-def sqlglot_spark_transforms(query):
+def spark_transforms(query):
     """Apply a series of transforms to the query tree, recursively using SQLGlot's recursive transform function.
 
     Each transform takes and returns a sqlglot.Expression"""
-    query_tree = sqlglot.parse_one(query, read="spark")
+    query_tree = sqlglot.parse_one(query, read="trino")
     transforms = (
         interval_fix,
         fix_boolean,
