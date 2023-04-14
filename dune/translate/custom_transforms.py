@@ -347,9 +347,9 @@ def rename_amount_column(query):
     return sqlglot.parse_one(query.sql(dialect="trino").replace("usd_amount", "amount_usd"), read="trino")
 
 
-def bytea2numeric(query_tree):
+def bytea2numeric(node):
     """Replace and warn about bytearray functions"""
-    query = query_tree.sql(dialect="trino")
+    query = node.sql(dialect="trino")
     if "bytea2numeric" in query.lower():
         query = re.sub("bytea2numeric", "bytearray_to_bigint", query, flags=re.IGNORECASE)
         query = (
@@ -408,6 +408,15 @@ def postgres_transforms(query, dataset):
     for f in transforms:
         query_tree = query_tree.transform(f)
     return query_tree
+
+
+def remove_quotes_around_0x_strings(query):
+    """Remove string quotes around '0x...' string literals
+
+    This has to happen after SQLGlot, since it will parse a bare 0x as a string literal"""
+    pattern = r"'0x(.*?)'"
+    substituted = re.sub(pattern, r"0x\1", query, flags=re.IGNORECASE)
+    return substituted
 
 
 def spark_transforms(query):

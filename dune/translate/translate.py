@@ -13,7 +13,7 @@ from dune.translate.custom_transforms import (
     prep_query,
     single_quoted_param_left_placeholder,
     single_quoted_param_right_placeholder,
-    spark_transforms,
+    spark_transforms, remove_quotes_around_0x_strings,
 )
 from dune.translate.errors import DuneTranslationError
 
@@ -59,6 +59,7 @@ def _translate_query(query, sqlglot_dialect, dataset=None):
         # Non-SQLGlot transforms
         query = fix_bytearray_param(query)
         query = fix_bytearray_lower(query)
+        query = remove_quotes_around_0x_strings(query)
 
         return add_warnings_and_banner(query)
 
