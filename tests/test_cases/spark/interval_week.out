@@ -1,0 +1,4 @@
+/* Success! If you're still running into issues, check out https://dune.com/docs/query/syntax-differences/ or reach out in the #dune-sql Discord channel. */
+
+SELECT
+  CURRENT_TIMESTAMP - INTERVAL '448' day /* week doesn't work in DuneSQL */

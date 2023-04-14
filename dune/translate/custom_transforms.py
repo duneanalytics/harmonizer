@@ -208,9 +208,23 @@ def interval_fix(node):
         if len(regex_matches) == 0:
             return node
         interval_argument = " ".join(regex_matches)
+
         if len(interval_argument.split()) == 1:
+            # The interval part is most likely `interval '1' week`
+            unit = node.args.get("unit")
+            if unit is not None and unit.name.startswith("week"):
+                value = node.args["this"].sql()
+                try:
+                    value = int(value[1:-1])  # remove quotes
+                except ValueError:
+                    return node
+                new_unit = (f"'{str(value * 7)}'" + unit.sql()).replace("weeks", "day").replace("week", "day")
+                return sqlglot.parse_one(f"interval {new_unit} --week doesn't work in DuneSQL")
             return node
+
+        # The interval value is most likely a string, like `interval '1 week'`
         value, granularity, *rest = interval_argument.split()
+        1 + 1
         if any(
             known_granularity in granularity.lower()
             for known_granularity in [

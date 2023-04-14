@@ -1,0 +1,1 @@
+select now() - interval '64' week

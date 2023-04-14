@@ -33,4 +33,5 @@ spark_test_cases = [
     SparkTestCase("test_cases/param.in", "test_cases/param.out"),
     SparkTestCase("test_cases/spark/quoted_column.in", "test_cases/spark/quoted_column.out"),
     SparkTestCase("test_cases/spark/0x_strings.in", "test_cases/spark/0x_strings.out"),
+    SparkTestCase("test_cases/spark/interval_week.in", "test_cases/spark/interval_week.out"),
 ]
