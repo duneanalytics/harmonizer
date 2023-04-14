@@ -21,7 +21,7 @@ Install with
 pip install dune-harmonizer
 ```
 
-Now import the `migrate_` functions in your code:
+Now import the `translate_` functions in your code:
 
 ```python
 from dune.harmonizer import translate_spark, translate_postgres
