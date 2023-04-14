@@ -4,7 +4,7 @@ import sqlglot
 from sqlglot import ParseError
 
 from dune.translate.errors import DuneTranslationError
-from dune.translate.helpers import (
+from dune.translate.custom_transforms import (
     add_warnings_and_banner,
     double_quoted_param_left_placeholder,
     double_quoted_param_right_placeholder,
@@ -13,8 +13,8 @@ from dune.translate.helpers import (
     prep_query,
     single_quoted_param_left_placeholder,
     single_quoted_param_right_placeholder,
-    sqlglot_postgres_transforms,
-    sqlglot_spark_transforms,
+    postgres_transforms,
+    spark_transforms,
 )
 
 
@@ -39,11 +39,11 @@ def _translate_query(query, sqlglot_dialect, dataset=None):
 
         # Perform custom transformations using SQLGlot's parsed representation
         if sqlglot_dialect == "spark":
-            query_tree = sqlglot_spark_transforms(query)
+            query_tree = spark_transforms(query)
         elif sqlglot_dialect == "postgres":
             # Update bytearray syntax
             query = query.replace("\\x", "0x")
-            query_tree = sqlglot_postgres_transforms(query, dataset)
+            query_tree = postgres_transforms(query, dataset)
 
         # Turn back to SQL
         query = query_tree.sql(dialect="trino", pretty=True)
