@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from dune.translate import migrate_postgres, migrate_spark
+from dune.harmonizer import translate_postgres, translate_spark
 from tests.cases import PostgresTestCase, SparkTestCase, postgres_test_cases, spark_test_cases
 
 
@@ -12,9 +12,9 @@ def update_test_case(tc):
     with open(in_filename, "r") as f:
         query = f.read()
     if isinstance(tc, SparkTestCase):
-        output = migrate_spark(query)
+        output = translate_spark(query)
     elif isinstance(tc, PostgresTestCase):
-        output = migrate_postgres(query, tc.dataset)
+        output = translate_postgres(query, tc.dataset)
     with open(out_filename, "w") as f:
         f.write(output)
 
