@@ -3,7 +3,7 @@ from functools import partial
 
 import sqlglot
 
-from dune.translate.table_replacements import postgres_table_replacements
+from dune.harmonizer.table_replacements import postgres_table_replacements
 
 
 def extract_nested_select(text):

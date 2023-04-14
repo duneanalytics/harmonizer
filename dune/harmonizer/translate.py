@@ -3,7 +3,7 @@ import re
 import sqlglot
 from sqlglot import ParseError
 
-from dune.translate.custom_transforms import (
+from dune.harmonizer.custom_transforms import (
     add_warnings_and_banner,
     double_quoted_param_left_placeholder,
     double_quoted_param_right_placeholder,
@@ -16,7 +16,7 @@ from dune.translate.custom_transforms import (
     single_quoted_param_right_placeholder,
     spark_transforms,
 )
-from dune.translate.errors import DuneTranslationError
+from dune.harmonizer.errors import DuneTranslationError
 
 
 def _clean_dataset(dataset):
