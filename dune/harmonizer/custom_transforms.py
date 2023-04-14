@@ -224,7 +224,6 @@ def interval_fix(node):
 
         # The interval value is most likely a string, like `interval '1 week'`
         value, granularity, *rest = interval_argument.split()
-        1 + 1
         if any(
             known_granularity in granularity.lower()
             for known_granularity in [
@@ -433,6 +432,14 @@ def remove_quotes_around_0x_strings(query):
     return substituted
 
 
+def spark_function_replacements(node):
+    """Replace the Spark timestamp() function with Trino's from_unixtime() function"""
+    query = node.sql(dialect="trino")
+    if "timestamp(" in query.lower():
+        query = re.sub("timestamp", "from_unixtime", query, flags=re.IGNORECASE)
+    return sqlglot.parse_one(query, read="trino")
+
+
 def spark_transforms(query):
     """Apply a series of transforms to the query tree, recursively using SQLGlot's recursive transform function.
 
@@ -446,6 +453,7 @@ def spark_transforms(query):
         warn_unnest,
         warn_sequence,
         bytea2numeric,
+        spark_function_replacements,
     )
     for f in transforms:
         query_tree = query_tree.transform(f)
