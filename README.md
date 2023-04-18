@@ -41,7 +41,11 @@ def translate_postgres(query: str, dataset: str) -> str:
 
 Contributions are very welcome!
 
-Please open an issue, and we will get back to you as soon as we can.
+Please open an issue or PR, and we will get back to you as soon as we can.
+
+**If you've found a table that doesn't get mapped to one that exists on Dune SQL**, then you can open an issue or just add the table mapping [to this line](https://github.com/duneanalytics/harmonizer/blob/main/dune/harmonizer/table_replacements.py#L18) here in a PR.
+
+**If there is a function that doesn't get mapped correctly**, then you can open an issue or try and [add one here using sqlglot](https://github.com/duneanalytics/harmonizer/blob/main/dune/harmonizer/custom_transforms.py) and open a PR.
 
 ## Development
 
