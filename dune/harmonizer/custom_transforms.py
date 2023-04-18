@@ -403,7 +403,7 @@ def postgres_transforms(query, dataset):
     """Apply a series of transforms to the query tree, recursively using SQLGlot's recursive transform function.
 
     Each transform takes and returns a sqlglot.Expression"""
-    query_tree = sqlglot.parse_one(query, read="postgres")
+    query_tree = sqlglot.parse_one(query, read="trino")
     transforms = (
         postgres_table_replacements(dataset),
         interval_fix,
