@@ -7,7 +7,7 @@ class DuneSQL(Trino):
 
     class Generator(Trino.Generator):
         TRANSFORMS = Trino.Generator.TRANSFORMS | {
-            # this transform will ensure that hex strings are always outputed as 0xdeadbeef,
-            # and not as X'deadbeef'
+            # this transform will ensure that hex strings are always
+            # output as 0xdeadbeef, and not as X'deadbeef'
             exp.HexString: lambda self, e: hex(int(e.name)),
         }
