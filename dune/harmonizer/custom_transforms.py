@@ -191,66 +191,6 @@ single_quoted_param_left_placeholder = f"'{param_left_placeholder}"
 single_quoted_param_right_placeholder = f"{param_right_placeholder}'"
 
 
-# TODO: Remove or simplify once the fix to https://github.com/tobymao/sqlglot/issues/1410 is released
-def interval_fix(node):
-    """Handle interval syntax change from Spark to Trino"""
-    if node.key == "interval":
-        # node.this is the argument to the interval function, possibly a parenthesized expression
-        interval_argument = str(node.this)
-        if interval_argument[0] == "(" and interval_argument[-1] == ")":
-            interval_argument = interval_argument[1:-1]
-        # Split on quotes
-        regex_split = re.split(r'[\'"]', interval_argument)
-        # remove empty elements (will occur if there are quotes inside the interval value)
-        # matches start at index 1, index 0 is the original string
-        regex_matches = [i for i in regex_split[1:] if i != ""]
-        # no match, return
-        if len(regex_matches) == 0:
-            return node
-        interval_argument = " ".join(regex_matches)
-
-        if len(interval_argument.split()) == 1:
-            # The interval part is most likely `interval '1' week`
-            unit = node.args.get("unit")
-            if unit is not None and unit.name.startswith("week"):
-                value = node.args["this"].sql()
-                try:
-                    value = int(value[1:-1])  # remove quotes
-                except ValueError:
-                    return node
-                new_unit = (f"'{str(value * 7)}'" + unit.sql()).replace("weeks", "day").replace("week", "day")
-                return sqlglot.parse_one(f"interval {new_unit} --week doesn't work in DuneSQL")
-            return node
-
-        # The interval value is most likely a string, like `interval '1 week'`
-        value, granularity, *rest = interval_argument.split()
-        if any(
-            known_granularity in granularity.lower()
-            for known_granularity in [
-                "second",
-                "minute",
-                "hour",
-                "day",
-                "week",
-                "month",
-                "year",
-            ]
-        ):
-            if granularity.endswith("s"):
-                granularity = granularity[:-1]
-            if granularity == "week":  # we don't have week in Trino SQL
-                value = int(value) * 7
-                granularity = "day"
-                rest.append("--week doesn't work in DuneSQL\n")
-            final_interval = (
-                ("INTERVAL '" + str(value) + "' " + granularity + " ".join(rest))
-                .replace(param_left_placeholder, double_quoted_param_left_placeholder)
-                .replace(param_right_placeholder, double_quoted_param_right_placeholder)
-            )
-            return sqlglot.parse_one(final_interval, read="trino")
-    return node
-
-
 def bytearray_parameter_fix(node):
     """Take care of parameters that use bytearrays"""
     if node.key == "eq":
@@ -403,10 +343,9 @@ def postgres_transforms(query, dataset):
     """Apply a series of transforms to the query tree, recursively using SQLGlot's recursive transform function.
 
     Each transform takes and returns a sqlglot.Expression"""
-    query_tree = sqlglot.parse_one(query, read="postgres")
+    query_tree = sqlglot.parse_one(query, read="trino")
     transforms = (
         postgres_table_replacements(dataset),
-        interval_fix,
         fix_boolean,
         cast_numeric,
         cast_timestamp,
@@ -446,7 +385,6 @@ def spark_transforms(query):
     Each transform takes and returns a sqlglot.Expression"""
     query_tree = sqlglot.parse_one(query, read="trino")
     transforms = (
-        interval_fix,
         fix_boolean,
         cast_numeric,
         cast_timestamp,
