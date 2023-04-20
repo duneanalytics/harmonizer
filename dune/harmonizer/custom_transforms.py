@@ -280,18 +280,6 @@ def warn_sequence(node):
     return node
 
 
-def prep_query(query):
-    for keyword in ["replace"]:
-        # use regex to replace the keyword with quotes around it
-        query = re.sub(
-            r"\b" + re.escape(keyword) + r"(?!\()",
-            '"' + keyword + '"',
-            query,
-            flags=re.IGNORECASE,
-        )
-    return query
-
-
 def rename_amount_column(query):
     """Rename the usd_amount column"""
     return sqlglot.parse_one(query.sql(dialect="trino").replace("usd_amount", "amount_usd"), read="trino")

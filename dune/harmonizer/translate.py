@@ -11,7 +11,6 @@ from dune.harmonizer.custom_transforms import (
     fix_bytearray_param,
     parameter_placeholder,
     postgres_transforms,
-    prep_query,
     remove_quotes_around_0x_strings,
     spark_transforms,
 )
@@ -33,8 +32,6 @@ def _translate_query(query, sqlglot_dialect, dataset=None):
         parameter_map = {parameter_placeholder(p): p for p in parameters}
         for replace, original in parameter_map.items():
             query = query.replace(original, replace)
-
-        query = prep_query(query)
 
         # Transpile to Trino
         query = sqlglot.transpile(query, read=sqlglot_dialect, write="trino", pretty=True)[0]
