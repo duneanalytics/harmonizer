@@ -1,0 +1,8 @@
+select
+    explode(
+        sequence(
+            to_date('{{1 - Start Date}}'),
+            least(NOW(), to_date('{{2 - End Date}}')),
+            interval 1 {{3 - Time Granularity}}
+        )
+    ) as time
