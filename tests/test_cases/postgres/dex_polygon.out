@@ -18,7 +18,9 @@ WHERE
   p.blockchain = 'polygon'
   AND block_time > CAST('2019-01-01' AS TIMESTAMP)
   AND block_time > CAST('{{start_date}}' AS TIMESTAMP)
-  AND block_time > CURRENT_TIMESTAMP - INTERVAL '7' day /* week doesn't work in DuneSQL */
+  AND block_time > CURRENT_TIMESTAMP - (
+    1 * INTERVAL '7' day
+  )
   AND category = 'DEX'
 GROUP BY
   1
