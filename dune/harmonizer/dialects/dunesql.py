@@ -28,3 +28,8 @@ class DuneSQL(Trino):
             # Output hex strings as 0xdeadbeef
             exp.HexString: lambda self, e: hex(int(e.name)),
         }
+
+        TYPE_MAPPING = Trino.Generator.TYPE_MAPPING | {
+            exp.DataType.Type.UBIGINT: "UINT256",
+            exp.DataType.Type.BIGINT: "INT256",
+        }
