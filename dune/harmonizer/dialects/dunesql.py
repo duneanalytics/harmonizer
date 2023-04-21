@@ -1,4 +1,4 @@
-from sqlglot import exp
+from sqlglot import TokenType, exp
 from sqlglot.dialects.trino import Trino
 
 
@@ -11,11 +11,15 @@ class DuneSQL(Trino):
         """Text -> Tokens"""
 
         HEX_STRINGS = ["0x", ("X'", "'")]
+        KEYWORDS = Trino.Tokenizer.KEYWORDS | {
+            "UINT256": TokenType.UBIGINT,
+            "INT256": TokenType.BIGINT,
+        }
 
     class Parser(Trino.Parser):
         """Tokens -> AST"""
 
-        pass
+        TYPE_TOKENS = Trino.Parser.TYPE_TOKENS | {TokenType.UBIGINT, TokenType.BIGINT}
 
     class Generator(Trino.Generator):
         """AST -> SQL"""
