@@ -1,5 +1,6 @@
-from sqlglot.dialects.trino import Trino
 from sqlglot import exp
+from sqlglot.dialects.trino import Trino
+
 
 class DuneSQL(Trino):
     class Tokenizer(Trino.Tokenizer):
