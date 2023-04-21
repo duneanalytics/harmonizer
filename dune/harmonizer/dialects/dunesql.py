@@ -3,6 +3,10 @@ from sqlglot.dialects.trino import Trino
 
 
 class DuneSQL(Trino):
+    """The DuneSQL dialect is the dialect used to execute SQL queries on Dune's crypto data sets
+
+    DuneSQL is the Trino dialect with slight modifications."""
+
     class Tokenizer(Trino.Tokenizer):
         """Text -> Tokens"""
 
