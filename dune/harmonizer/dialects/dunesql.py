@@ -10,7 +10,7 @@ class DuneSQL(Trino):
     class Tokenizer(Trino.Tokenizer):
         """Text -> Tokens"""
 
-        HEX_STRINGS = ["0x", ("X’", "‘")]
+        HEX_STRINGS = ["0x", ("X'", "'")]
 
     class Parser(Trino.Parser):
         """Tokens -> AST"""
