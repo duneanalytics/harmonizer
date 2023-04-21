@@ -4,11 +4,19 @@ from sqlglot.dialects.trino import Trino
 
 class DuneSQL(Trino):
     class Tokenizer(Trino.Tokenizer):
-        HEX_STRINGS = ["0x", ("X'", "'")]
+        """Text -> Tokens"""
+
+        HEX_STRINGS = ["0x", ("X’", "‘")]
+
+    class Parser(Trino.Parser):
+        """Tokens -> AST"""
+
+        pass
 
     class Generator(Trino.Generator):
+        """AST -> SQL"""
+
         TRANSFORMS = Trino.Generator.TRANSFORMS | {
-            # this transform will ensure that hex strings are always
-            # output as 0xdeadbeef, and not as X'deadbeef'
+            # Output hex strings as 0xdeadbeef
             exp.HexString: lambda self, e: hex(int(e.name)),
         }
