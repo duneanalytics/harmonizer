@@ -15,3 +15,8 @@ def test_generate_hexstring():
     assert "SELECT 0xdeadbeef" == sqlglot.transpile("SELECT x'deadbeef'", read="postgres", write=DuneSQL)[0]
     assert "SELECT 0xdeadbeef" == sqlglot.transpile("SELECT X'deadbeef'", read=DuneSQL, write=DuneSQL)[0]
     assert "SELECT 0xdeadbeef" == sqlglot.transpile("SELECT 0xdeadbeef", read=DuneSQL, write=DuneSQL)[0]
+
+
+def test_custom_types():
+    sqlglot.parse_one("SELECT CAST(1 AS INT)", read=DuneSQL)
+    sqlglot.parse_one("SELECT CAST(1 AS UINT256)", read=DuneSQL)
