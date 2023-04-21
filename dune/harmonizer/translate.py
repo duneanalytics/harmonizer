@@ -9,11 +9,9 @@ from dune.harmonizer.custom_transforms import (
     double_quoted_param_right_placeholder,
     fix_bytearray_lower,
     fix_bytearray_param,
+    parameter_placeholder,
     postgres_transforms,
-    prep_query,
     remove_quotes_around_0x_strings,
-    single_quoted_param_left_placeholder,
-    single_quoted_param_right_placeholder,
     spark_transforms,
 )
 from dune.harmonizer.errors import DuneTranslationError
@@ -30,10 +28,10 @@ def _translate_query(query, sqlglot_dialect, dataset=None):
     """Translate a query using SQLGLot plus custom rules"""
     try:
         # Insert placeholders for the parameters we use in Dune (`{{ param }}`), SQLGlot doesn't handle those
-        query = query.replace("{{", double_quoted_param_left_placeholder).replace(
-            "}}", double_quoted_param_right_placeholder
-        )
-        query = prep_query(query)
+        parameters = re.findall("({{.*?}})", query, flags=re.IGNORECASE)
+        parameter_map = {parameter_placeholder(p): p for p in parameters}
+        for replace, original in parameter_map.items():
+            query = query.replace(original, replace)
 
         # Transpile to Trino
         query = sqlglot.transpile(query, read=sqlglot_dialect, write="trino", pretty=True)[0]
@@ -50,12 +48,8 @@ def _translate_query(query, sqlglot_dialect, dataset=None):
         query = query_tree.sql(dialect="trino", pretty=True)
 
         # Replace placeholders with Dune params again
-        query = (
-            query.replace(double_quoted_param_left_placeholder, "{{")
-            .replace(double_quoted_param_right_placeholder, "}}")
-            .replace(single_quoted_param_left_placeholder, "{{")
-            .replace(single_quoted_param_right_placeholder, "}}")
-        )
+        for replace, original in parameter_map.items():
+            query = query.replace(replace, original)
 
         # Non-SQLGlot transforms
         query = fix_bytearray_param(query)

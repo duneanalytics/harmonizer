@@ -183,8 +183,8 @@ def dex_trades_fixes(node):
     return node
 
 
-param_left_placeholder = "parameter_placeholder_left_bracket"
-param_right_placeholder = "parameter_placeholder_right_bracket"
+param_left_placeholder = "left_param_"
+param_right_placeholder = "_right_param"
 double_quoted_param_left_placeholder = f'"{param_left_placeholder}'
 double_quoted_param_right_placeholder = f'{param_right_placeholder}"'
 single_quoted_param_left_placeholder = f"'{param_left_placeholder}"
@@ -228,20 +228,17 @@ def cast_numeric(node):
 
 
 def cast_timestamp(node):
+    """Look for date-like literals and params and cast these as timestamps"""
     if node.key == "literal":
         # and contains 'yyyy-mm-dd' format then cast to timestamp
         if re.search(r"\d{4}-\d{2}-\d{2}", node.sql(dialect="trino")):
             return sqlglot.parse_one("timestamp " + node.sql(dialect="trino"), read="trino")
 
         # or if it is a param that contains date/time
-        pattern = (
-            re.escape(double_quoted_param_left_placeholder)
-            + r"(.*?)"
-            + re.escape(double_quoted_param_right_placeholder)
-        )
-        match = re.search(pattern, node.sql(dialect="trino"))
-        if match and any(d in node.sql(dialect="trino").lower() for d in ["date", "time"]):
-            return sqlglot.parse_one("timestamp '{{" + match.group(1) + "}}'", read="trino")
+        pattern = "('" + param_left_placeholder + r".*?" + param_right_placeholder + "')"
+        if any(d in node.sql(dialect="trino").lower() for d in ("date", "time")):
+            q = re.sub(pattern, r"timestamp \1", node.sql(dialect="trino"))
+            return sqlglot.parse_one(q, read="trino")
     return node
 
 
@@ -281,18 +278,6 @@ def warn_sequence(node):
             read="trino",
         )
     return node
-
-
-def prep_query(query):
-    for keyword in ["replace"]:
-        # use regex to replace the keyword with quotes around it
-        query = re.sub(
-            r"\b" + re.escape(keyword) + r"(?!\()",
-            '"' + keyword + '"',
-            query,
-            flags=re.IGNORECASE,
-        )
-    return query
 
 
 def rename_amount_column(query):
@@ -428,3 +413,13 @@ def add_warnings_and_banner(query):
         "or reach out in the #dune-sql Discord channel. */"
         "\n\n"
     ) + query
+
+
+def parameter_placeholder(p):
+    return (
+        p.replace("{{", param_left_placeholder)
+        .replace("}}", param_right_placeholder)
+        .replace(" ", "_")
+        .replace("-", "_")
+        .lower()
+    )
