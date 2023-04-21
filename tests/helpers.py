@@ -6,17 +6,6 @@ def canonicalize(multiline_string):
     return " ".join(line.strip() for line in multiline_string.split("\n")).lower()
 
 
-def assert_output(output, expected_output):
-    clean_output = canonicalize(output)
-    if clean_output != expected_output:
-        print("== got ==")
-        print(clean_output)
-        print()
-        print("== expected ==")
-        print(expected_output)
-    assert clean_output == expected_output
-
-
 def read_test_case(testcase):
     p = Path(__file__).parent
     in_filename = p / testcase.in_filename

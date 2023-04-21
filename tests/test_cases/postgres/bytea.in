@@ -1,1 +1,1 @@
-select '\xdeadbeef'::bytea
+select x'deadbeef', '\xdeadbeef', '\xdeadbeef'::bytea
