@@ -14,6 +14,7 @@ from dune.harmonizer.custom_transforms import (
     remove_quotes_around_0x_strings,
     spark_transforms,
 )
+from dune.harmonizer.dialects.dunesql import DuneSQL
 from dune.harmonizer.errors import DuneTranslationError
 
 
@@ -45,7 +46,7 @@ def _translate_query(query, sqlglot_dialect, dataset=None):
             query_tree = postgres_transforms(query, dataset)
 
         # Turn back to SQL
-        query = query_tree.sql(dialect="trino", pretty=True)
+        query = query_tree.sql(dialect=DuneSQL, pretty=True)
 
         # Replace placeholders with Dune params again
         for replace, original in parameter_map.items():
