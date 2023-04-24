@@ -36,3 +36,8 @@ def test_explode_to_unnest():
             "SELECT explode(account_keys) AS exploded FROM solana.transactions", read="postgres", write=DuneSQL
         )[0]
     )
+    # original select expression has no FROM clause
+    assert (
+        "SELECT col FROM  CROSS JOIN UNNEST(SEQUENCE(1, 2)) AS array_column(col)"
+        == sqlglot.transpile("SELECT explode(sequence(1, 2))", read="spark", write=DuneSQL)[0]
+    )

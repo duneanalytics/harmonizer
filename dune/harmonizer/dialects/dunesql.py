@@ -6,23 +6,29 @@ def explode_to_unnest(expression: exp.Expression):
     """Convert explode to cross join unnest"""
     if isinstance(expression, exp.Select):
         for e in expression.args.get("expressions", []):
+            # Handle either an aliased explode select, or a plain explode select
             explode_alias = None
             if isinstance(e, exp.Alias):
-                explode_alias = e.alias
-                explode = e.args["this"]
-                to_remove = e
+                if isinstance(e.args["this"], exp.Explode):
+                    explode_alias = e.alias
+                    explode = e.args["this"]
+                    to_remove = e
+                    explode_expression = explode.args["this"]
+                else:
+                    continue
             elif isinstance(e, exp.Explode):
                 explode = e
                 to_remove = e
+                explode_expression = explode.args["this"]
             else:
                 continue
-            explode_column = explode.args["this"].name
+
             array_column_name = "array_column"
             unnested_column_name = explode_alias or "col"
-            unnest = exp.Unnest(expressions=[explode_column], alias=f"{array_column_name}({unnested_column_name})")
+            unnest = exp.Unnest(expressions=[explode_expression], alias=f"{array_column_name}({unnested_column_name})")
             join = exp.Join(this=unnest, kind="CROSS")
             expression.args["expressions"].remove(to_remove)
-            expression = expression.select(unnested_column_name).join(join)
+            expression = expression.select(unnested_column_name).from_(expressions=[]).join(join)
     return expression
 
 
