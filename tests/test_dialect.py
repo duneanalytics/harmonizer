@@ -24,6 +24,15 @@ def test_custom_types():
 
 
 def test_explode_to_unnest():
-    stmt = "SELECT explode(account_keys) FROM solana.transactions"
-    expected = "SELECT col FROM solana.transactions CROSS JOIN UNNEST(account_keys) AS array_column(col)"
-    assert expected == sqlglot.transpile(stmt, read="postgres", write=DuneSQL)[0]
+    # plain select
+    assert (
+        "SELECT col FROM solana.transactions CROSS JOIN UNNEST(account_keys) AS array_column(col)"
+        == sqlglot.transpile("SELECT explode(account_keys) FROM solana.transactions", read="postgres", write=DuneSQL)[0]
+    )
+    # alias
+    assert (
+        "SELECT exploded FROM solana.transactions CROSS JOIN UNNEST(account_keys) AS array_column(exploded)"
+        == sqlglot.transpile(
+            "SELECT explode(account_keys) AS exploded FROM solana.transactions", read="postgres", write=DuneSQL
+        )[0]
+    )

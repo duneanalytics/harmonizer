@@ -5,15 +5,24 @@ from sqlglot.dialects.trino import Trino
 def explode_to_unnest(expression: exp.Expression):
     """Convert explode to cross join unnest"""
     if isinstance(expression, exp.Select):
-        for explode in expression.args.get("expressions", []):
-            if isinstance(explode, exp.Explode):
-                explode_column = explode.args["this"].name
-                array_column_name = "array_column"
-                unnested_column_name = "col"
-                unnest = exp.Unnest(expressions=[explode_column], alias=f"{array_column_name}({unnested_column_name})")
-                join = exp.Join(this=unnest, kind="CROSS")
-                expression.args["expressions"].remove(explode)
-                expression = expression.select(unnested_column_name).join(join)
+        for e in expression.args.get("expressions", []):
+            explode_alias = None
+            if isinstance(e, exp.Alias):
+                explode_alias = e.alias
+                explode = e.args["this"]
+                to_remove = e
+            elif isinstance(e, exp.Explode):
+                explode = e
+                to_remove = e
+            else:
+                continue
+            explode_column = explode.args["this"].name
+            array_column_name = "array_column"
+            unnested_column_name = explode_alias or "col"
+            unnest = exp.Unnest(expressions=[explode_column], alias=f"{array_column_name}({unnested_column_name})")
+            join = exp.Join(this=unnest, kind="CROSS")
+            expression.args["expressions"].remove(to_remove)
+            expression = expression.select(unnested_column_name).join(join)
     return expression
 
 
