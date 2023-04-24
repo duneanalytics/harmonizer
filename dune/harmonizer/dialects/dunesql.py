@@ -1,5 +1,20 @@
-from sqlglot import TokenType, exp
+from sqlglot import TokenType, exp, transforms
 from sqlglot.dialects.trino import Trino
+
+
+def explode_to_unnest(expression: exp.Expression):
+    """Convert explode to cross join unnest"""
+    if isinstance(expression, exp.Select):
+        for explode in expression.args.get("expressions", []):
+            if isinstance(explode, exp.Explode):
+                explode_column = explode.args["this"].name
+                array_column_name = "array_column"
+                unnested_column_name = "col"
+                unnest = exp.Unnest(expressions=[explode_column], alias=f"{array_column_name}({unnested_column_name})")
+                join = exp.Join(this=unnest, kind="CROSS")
+                expression.args["expressions"].remove(explode)
+                expression = expression.select(unnested_column_name).join(join)
+    return expression
 
 
 class DuneSQL(Trino):
@@ -27,6 +42,7 @@ class DuneSQL(Trino):
         TRANSFORMS = Trino.Generator.TRANSFORMS | {
             # Output hex strings as 0xdeadbeef
             exp.HexString: lambda self, e: hex(int(e.name)),
+            exp.Select: transforms.preprocess([explode_to_unnest]),
         }
 
         TYPE_MAPPING = Trino.Generator.TYPE_MAPPING | {
