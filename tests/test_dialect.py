@@ -21,3 +21,9 @@ def test_custom_types():
     sqlglot.parse_one("SELECT CAST(1 AS INT256)", read=DuneSQL)
     sqlglot.parse_one("SELECT CAST(1 AS UINT256)", read=DuneSQL)
     assert "SELECT CAST(1 AS UINT256)" == sqlglot.transpile("SELECT CAST(1 AS UINT256)", read=DuneSQL, write=DuneSQL)[0]
+
+
+def test_explode_to_unnest():
+    stmt = "SELECT explode(account_keys) FROM solana.transactions"
+    expected = "SELECT col FROM solana.transactions CROSS JOIN UNNEST(account_keys) AS array_column(col)"
+    assert expected == sqlglot.transpile(stmt, read="postgres", write=DuneSQL)[0]
