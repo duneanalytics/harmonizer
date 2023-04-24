@@ -9,11 +9,11 @@ from tests.helpers import canonicalize, read_test_case
 def test_translate_postgres(test_case):
     query, expected_output = read_test_case(test_case)
     output = translate_postgres(query=query, dataset=test_case.dataset)
-    assert expected_output == canonicalize(output)
+    assert canonicalize(output) == expected_output
 
 
 @pytest.mark.parametrize("test_case", spark_test_cases)
 def test_translate_spark(test_case):
     query, expected_output = read_test_case(test_case)
     output = translate_spark(query=query)
-    assert expected_output == canonicalize(output)
+    assert canonicalize(output) == expected_output
