@@ -7,7 +7,6 @@ from dune.harmonizer.custom_transforms import (
     add_warnings_and_banner,
     double_quoted_param_left_placeholder,
     double_quoted_param_right_placeholder,
-    fix_bytearray_lower,
     fix_bytearray_param,
     parameter_placeholder,
     postgres_transforms,
@@ -53,7 +52,6 @@ def _translate_query(query, sqlglot_dialect, dataset=None):
 
         # Non-SQLGlot transforms
         query = fix_bytearray_param(query)
-        query = fix_bytearray_lower(query)
 
         return add_warnings_and_banner(query)
 

@@ -290,15 +290,6 @@ def fix_bytearray_param(query):
     return re.sub(pattern, r"{{\1}}", query, flags=re.IGNORECASE)
 
 
-def fix_bytearray_lower(query):
-    """Remove lower function call around '0x...' string literals, and remove the string since we have native hex types.
-
-    This has to happen after SQLGlot, since it will parse a bare 0x as a string literal"""
-    pattern = r"lower\(\s*['\"]?0x(.*?)['\"]?\s*\)"
-    substituted = re.sub(pattern, r"0x\1", query, flags=re.IGNORECASE)
-    return substituted
-
-
 def chain_where(dataset):
     return {
         "gnosis": chain_where_gnosis,
