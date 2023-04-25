@@ -50,6 +50,15 @@ def explode_to_unnest(expression: exp.Expression):
     return expression
 
 
+def replace_0x_strings_with_hexstrings(expression: exp.Expression):
+    """Recursively replace string literals starting with '0x' with the equivalent HexString"""
+    return expression.transform(
+        lambda e: exp.HexString(this=int(e.this, 16))
+        if isinstance(e, exp.Literal) and e.args["is_string"] and e.args["this"].startswith("0x")
+        else e
+    )
+
+
 class DuneSQL(Trino):
     """The DuneSQL dialect is the dialect used to execute SQL queries on Dune's crypto data sets
 
@@ -74,8 +83,8 @@ class DuneSQL(Trino):
 
         TRANSFORMS = Trino.Generator.TRANSFORMS | {
             # Output hex strings as 0xdeadbeef
-            exp.HexString: lambda self, e: hex(int(e.name)),
-            exp.Select: transforms.preprocess([explode_to_unnest]),
+            exp.HexString: lambda self, e: hex(int(e.this)),
+            exp.Select: transforms.preprocess([explode_to_unnest, replace_0x_strings_with_hexstrings]),
         }
 
         TYPE_MAPPING = Trino.Generator.TYPE_MAPPING | {
