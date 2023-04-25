@@ -31,7 +31,7 @@ def explode_to_unnest(expression: exp.Expression):
 
             # If the SELECT has a FROM, do a CROSS JOIN with the UNNEST,
             # otherwise, just do SELECT ... FROM UNNEST
-            if expression.args.get('from') is not None:
+            if expression.args.get("from") is not None:
                 join = exp.Join(this=unnest, kind="CROSS")
                 expression = expression.select(unnested_column_name).join(join)
             else:
