@@ -42,9 +42,13 @@ def test_explode_to_unnest():
         == "SELECT col FROM UNNEST(SEQUENCE(1, 2)) AS array_column(col)"
     )
     # posexplode from a table
-    assert (
-        sqlglot.transpile("SELECT posexplode(sequence(2, 3)) FROM solana.transactions", read="spark", write=DuneSQL)[0]
-        == "SELECT pos, col FROM solana.transactions CROSS JOIN UNNEST(SEQUENCE(2, 3)) WITH ORDINALITY AS array_column(col, pos)"
+    assert sqlglot.transpile("SELECT posexplode(sequence(2, 3)) FROM solana.transactions", read="spark", write=DuneSQL)[
+        0
+    ] == " ".join(
+        (
+            "SELECT pos, col FROM solana.transactions",
+            "CROSS JOIN UNNEST(SEQUENCE(2, 3)) WITH ORDINALITY AS array_column(col, pos)",
+        )
     )
     # posexplode, no from
     assert (
