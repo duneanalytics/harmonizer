@@ -55,3 +55,13 @@ def test_explode_to_unnest():
         "SELECT pos, col FROM UNNEST(SEQUENCE(2, 3)) WITH ORDINALITY AS array_column(col, pos)"
         == sqlglot.transpile("SELECT posexplode(sequence(2, 3))", read="spark", write=DuneSQL)[0]
     )
+    # explode with table alias
+    assert (
+        "SELECT col FROM table AS t CROSS JOIN UNNEST(t.c) AS array_column(col)"
+        == sqlglot.transpile("SELECT explode(t.c) FROM table t", read="spark", write=DuneSQL)[0]
+    )
+    # posexplode with table alias
+    assert (
+        "SELECT pos, col FROM table AS t CROSS JOIN UNNEST(t.c) WITH ORDINALITY AS array_column(col, pos)"
+        == sqlglot.transpile("SELECT posexplode(t.c) FROM table t", read="spark", write=DuneSQL)[0]
+    )
