@@ -3,4 +3,4 @@
 SELECT
   0xdeadbeef,
   0xdeadbeef,
-  CAST(0xdeadbeef AS VARBINARY)
+  TRY_CAST(0xdeadbeef AS VARBINARY)
