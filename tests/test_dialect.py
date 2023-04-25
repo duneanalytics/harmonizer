@@ -26,18 +26,32 @@ def test_custom_types():
 def test_explode_to_unnest():
     # plain select
     assert (
-        "SELECT col FROM solana.transactions CROSS JOIN UNNEST(account_keys) AS array_column(col)"
-        == sqlglot.transpile("SELECT explode(account_keys) FROM solana.transactions", read="postgres", write=DuneSQL)[0]
+        sqlglot.transpile("SELECT explode(account_keys) FROM solana.transactions", read="postgres", write=DuneSQL)[0]
+        == "SELECT col FROM solana.transactions CROSS JOIN UNNEST(account_keys) AS array_column(col)"
     )
     # alias
     assert (
-        "SELECT exploded FROM solana.transactions CROSS JOIN UNNEST(account_keys) AS array_column(exploded)"
-        == sqlglot.transpile(
+        sqlglot.transpile(
             "SELECT explode(account_keys) AS exploded FROM solana.transactions", read="postgres", write=DuneSQL
         )[0]
+        == "SELECT exploded FROM solana.transactions CROSS JOIN UNNEST(account_keys) AS array_column(exploded)"
     )
     # original select expression has no FROM clause, so should just be FROM UNNEST
     assert (
-        "SELECT col FROM UNNEST(SEQUENCE(1, 2)) AS array_column(col)"
-        == sqlglot.transpile("SELECT explode(sequence(1, 2))", read="spark", write=DuneSQL)[0]
+        sqlglot.transpile("SELECT explode(sequence(1, 2))", read="spark", write=DuneSQL)[0]
+        == "SELECT col FROM UNNEST(SEQUENCE(1, 2)) AS array_column(col)"
+    )
+    # posexplode from a table
+    assert sqlglot.transpile("SELECT posexplode(sequence(2, 3)) FROM solana.transactions", read="spark", write=DuneSQL)[
+        0
+    ] == " ".join(
+        (
+            "SELECT pos, col FROM solana.transactions",
+            "CROSS JOIN UNNEST(SEQUENCE(2, 3)) WITH ORDINALITY AS array_column(col, pos)",
+        )
+    )
+    # posexplode, no from
+    assert (
+        "SELECT pos, col FROM UNNEST(SEQUENCE(2, 3)) WITH ORDINALITY AS array_column(col, pos)"
+        == sqlglot.transpile("SELECT posexplode(sequence(2, 3))", read="spark", write=DuneSQL)[0]
     )
