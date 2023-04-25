@@ -50,12 +50,19 @@ def explode_to_unnest(expression: exp.Expression):
     return expression
 
 
-def replace_0x_strings_with_hexstrings(expression: exp.Expression):
+def replace_0x_strings_with_hex_strings(expression: exp.Expression):
     """Recursively replace string literals starting with '0x' with the equivalent HexString"""
     return expression.transform(
         lambda e: exp.HexString(this=int(e.this, 16))
         if isinstance(e, exp.Literal) and e.args["is_string"] and e.args["this"].startswith("0x")
         else e
+    )
+
+
+def remove_lower_around_hex_strings(expression: exp.Expression):
+    """Remove the LOWER() function around hex strings"""
+    return expression.transform(
+        lambda e: e.args["this"] if isinstance(e, exp.Lower) and isinstance(e.args["this"], exp.HexString) else e
     )
 
 
@@ -84,7 +91,14 @@ class DuneSQL(Trino):
         TRANSFORMS = Trino.Generator.TRANSFORMS | {
             # Output hex strings as 0xdeadbeef
             exp.HexString: lambda self, e: hex(int(e.this)),
-            exp.Select: transforms.preprocess([explode_to_unnest, replace_0x_strings_with_hexstrings]),
+            exp.Select: transforms.preprocess(
+                [
+                    explode_to_unnest,
+                    replace_0x_strings_with_hex_strings,
+                    remove_lower_around_hex_strings,
+                    # explode_to_unnest,
+                ]
+            ),
         }
 
         TYPE_MAPPING = Trino.Generator.TYPE_MAPPING | {
