@@ -26,12 +26,16 @@ def explode_to_unnest(expression: exp.Expression):
             array_column_name = "array_column"
             unnested_column_name = explode_alias or "col"
             unnest = exp.Unnest(expressions=[explode_expression], alias=f"{array_column_name}({unnested_column_name})")
-            join = exp.Join(this=unnest, kind="CROSS")
             # Remove the `explode()` expression from the select
             expression.args["expressions"].remove(to_remove)
-            # Add an empty FROM expression so that there's always a FROM even if we don't select from a table,
-            # e.g. if the original expression is `select explode(sequence(...)))`
-            expression = expression.select(unnested_column_name).from_(expressions=[]).join(join)
+
+            # If the SELECT has a FROM, do a CROSS JOIN with the UNNEST,
+            # otherwise, just do SELECT ... FROM UNNEST
+            if expression.args.get('from') is not None:
+                join = exp.Join(this=unnest, kind="CROSS")
+                expression = expression.select(unnested_column_name).join(join)
+            else:
+                expression = expression.select(unnested_column_name).from_(unnest)
     return expression
 
 
