@@ -219,8 +219,7 @@ def bytearray_parameter_fix(node):
 
 
 def cast_numeric(node):
-    """if a column is being added, subtracted, multiplied, divided, etc,
-    and it has amount/value in the name, cast to double"""
+    """if a column has amount/value in the name, cast to double"""
     if node.key == "column":
         if any(val in node.name.lower() for val in ("amount", "value")):
             return sqlglot.parse_one("cast(" + node.name + " as double)", read="trino")
@@ -249,20 +248,6 @@ def fix_boolean(node):
             # remove single or double quotes
             bool_cleaned = node.sql(dialect="trino").replace('"', "").replace("'", "")
             return sqlglot.parse_one(bool_cleaned, read="trino")
-    return node
-
-
-def warn_unnest(node):
-    """Add a warning to the query if there is an unnest function call"""
-    if node.name.lower() in ("unnest", "explode"):
-        return sqlglot.parse_one(
-            node.sql(dialect="trino")
-            + (
-                "-- WARNING: You can't use explode/unnest inside SELECT anymore, it must be LATERAL "
-                + "or CROSS JOIN instead. Check out the docs here: https://dune.com/docs/query/syntax-differences/"
-            ),
-            read="trino",
-        )
     return node
 
 
@@ -334,7 +319,6 @@ def postgres_transforms(query, dataset):
         fix_boolean,
         cast_numeric,
         cast_timestamp,
-        warn_unnest,
         warn_sequence,
         dex_trades_fixes,
         chain_where(dataset),
@@ -356,7 +340,6 @@ def spark_transforms(query):
         fix_boolean,
         cast_numeric,
         cast_timestamp,
-        warn_unnest,
         warn_sequence,
         bytea2numeric,
     )
