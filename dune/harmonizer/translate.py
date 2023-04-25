@@ -11,7 +11,6 @@ from dune.harmonizer.custom_transforms import (
     fix_bytearray_param,
     parameter_placeholder,
     postgres_transforms,
-    remove_quotes_around_0x_strings,
     spark_transforms,
 )
 from dune.harmonizer.dialects.dunesql import DuneSQL
@@ -55,7 +54,6 @@ def _translate_query(query, sqlglot_dialect, dataset=None):
         # Non-SQLGlot transforms
         query = fix_bytearray_param(query)
         query = fix_bytearray_lower(query)
-        query = remove_quotes_around_0x_strings(query)
 
         return add_warnings_and_banner(query)
 
