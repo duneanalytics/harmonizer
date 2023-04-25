@@ -23,6 +23,10 @@ def test_force_string_with_0x_to_hexstring():
         "SELECT 0xdeadbeef, LOWER(0xdeadbeef), 0x1 || 0x2"
         == sqlglot.transpile("SELECT '0xdeadbeef', lower('0xdeadbeef'), '0x1' || '0x2'", read="spark", write=DuneSQL)[0]
     )
+    assert (
+        "SELECT * FROM table WHERE col = 0xdeadbeef"
+        == sqlglot.transpile("SELECT * FROM table WHERE col = '0xdeadbeef'", read="spark", write=DuneSQL)[0]
+    )
 
 
 def test_custom_types():
