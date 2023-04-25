@@ -50,15 +50,13 @@ def explode_to_unnest(expression: exp.Expression):
     return expression
 
 
-def _replace_0x_strings_with_hexstrings(e: exp.Expression):
-    if isinstance(e, exp.Literal) and e.args["is_string"] and e.args["this"].startswith("0x"):
-        return exp.HexString(this=int(e.this, 16))
-    return e
-
-
 def replace_0x_strings_with_hexstrings(expression: exp.Expression):
     """Recursively replace string literals starting with '0x' with the equivalent HexString"""
-    return expression.transform(_replace_0x_strings_with_hexstrings)
+    return expression.transform(
+        lambda e: exp.HexString(this=int(e.this, 16))
+        if isinstance(e, exp.Literal) and e.args["is_string"] and e.args["this"].startswith("0x")
+        else e
+    )
 
 
 class DuneSQL(Trino):
