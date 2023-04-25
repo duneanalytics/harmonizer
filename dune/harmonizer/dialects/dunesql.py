@@ -3,65 +3,50 @@ from sqlglot.dialects.trino import Trino
 
 
 def explode_to_unnest(expression: exp.Expression):
-    """Convert explode to cross join unnest"""
+    """Convert posexplode, explode, and aliased explode to unnest"""
     if isinstance(expression, exp.Select):
         for e in expression.args.get("expressions", []):
-            # Handle either an aliased explode select, or a plain explode select
-            explode_alias = None
-            explode = None
-            posexplode = None
-            if isinstance(e, exp.Alias):
-                if isinstance(e.args["this"], exp.Explode):
-                    explode_alias = e.alias
-                    explode = e.args["this"]
-                    to_remove = e
-                    explode_expression = explode.args["this"]
+            if isinstance(e, exp.Posexplode):
+                explode_expression = e.args["this"]
+
+                # Remove the `posexplode()` expression from the select
+                expression.args["expressions"].remove(e)
+
+                # If the SELECT has a FROM, do a CROSS JOIN with the UNNEST,
+                # otherwise, just do SELECT ... FROM UNNEST
+                unnest = exp.Unnest(expressions=[explode_expression], alias="array_column(col, pos)", ordinality=True)
+                if expression.args.get("from") is not None:
+                    join = exp.Join(this=unnest, kind="CROSS")
+                    expression = expression.select("pos", "col").join(join)
                 else:
-                    continue
+                    expression = expression.select("pos", "col").from_(unnest)
+                continue
+
             elif isinstance(e, exp.Explode):
-                explode = e
-                to_remove = e
-                explode_expression = explode.args["this"]
-            elif isinstance(e, exp.Posexplode):
-                posexplode = e
-                to_remove = e
-                posexplode_expression = posexplode.args["this"]
-
-            if explode is not None:
-                array_column_name = "array_column"
-                unnested_column_name = explode_alias or "col"
-                unnest = exp.Unnest(
-                    expressions=[explode_expression], alias=f"{array_column_name}({unnested_column_name})"
-                )
-                # Remove the `explode()` expression from the select
-                expression.args["expressions"].remove(to_remove)
-
-                # If the SELECT has a FROM, do a CROSS JOIN with the UNNEST,
-                # otherwise, just do SELECT ... FROM UNNEST
-                if expression.args.get("from") is not None:
-                    join = exp.Join(this=unnest, kind="CROSS")
-                    expression = expression.select(unnested_column_name).join(join)
-                else:
-                    expression = expression.select(unnested_column_name).from_(unnest)
-            elif posexplode is not None:
-                array_column_name = "array_column"
                 unnested_column_name = "col"
-                position_column_name = "pos"
-                unnest = exp.Unnest(
-                    expressions=[posexplode_expression],
-                    alias=f"{array_column_name}({unnested_column_name}, {position_column_name})",
-                    ordinality=True,
-                )
-                # Remove the `explode()` expression from the select
-                expression.args["expressions"].remove(to_remove)
+                explode_expression = e.args["this"]
 
-                # If the SELECT has a FROM, do a CROSS JOIN with the UNNEST,
-                # otherwise, just do SELECT ... FROM UNNEST
-                if expression.args.get("from") is not None:
-                    join = exp.Join(this=unnest, kind="CROSS")
-                    expression = expression.select(position_column_name, unnested_column_name).join(join)
-                else:
-                    expression = expression.select(position_column_name, unnested_column_name).from_(unnest)
+            elif isinstance(e, exp.Alias):
+                if not isinstance(e.args["this"], exp.Explode):
+                    continue
+                unnested_column_name = e.alias
+                explode_expression = e.args["this"].args["this"]
+
+            # This is not a (pos)explode expression
+            else:
+                continue
+
+            # Remove the `explode()` expression from the select
+            expression.args["expressions"].remove(e)
+
+            # If the SELECT has a FROM, do a CROSS JOIN with the UNNEST,
+            # otherwise, just do SELECT ... FROM UNNEST
+            unnest = exp.Unnest(expressions=[explode_expression], alias=f"array_column({unnested_column_name})")
+            if expression.args.get("from") is not None:
+                join = exp.Join(this=unnest, kind="CROSS")
+                expression = expression.select(unnested_column_name).join(join)
+            else:
+                expression = expression.select(unnested_column_name).from_(unnest)
     return expression
 
 
