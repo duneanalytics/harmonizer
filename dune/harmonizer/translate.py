@@ -11,6 +11,7 @@ from dune.harmonizer.custom_transforms import (
     parameter_placeholder,
     postgres_transforms,
     spark_transforms,
+    nlq_postgres_transforms,
 )
 from dune.harmonizer.dialects.dunesql import DuneSQL
 from dune.harmonizer.errors import DuneTranslationError
@@ -23,7 +24,7 @@ def _clean_dataset(dataset):
     raise ValueError(f"Unknown dataset: {dataset}")
 
 
-def _translate_query(query, sqlglot_dialect, dataset=None):
+def _translate_query(query, sqlglot_dialect, dataset=None, nlq=None):
     """Translate a query using SQLGLot plus custom rules"""
     try:
         # Insert placeholders for the parameters we use in Dune (`{{ param }}`), SQLGlot doesn't handle those
@@ -36,13 +37,21 @@ def _translate_query(query, sqlglot_dialect, dataset=None):
         query = sqlglot.transpile(query, read=sqlglot_dialect, write="trino", pretty=True)[0]
 
         # Perform custom transformations using SQLGlot's parsed representation
-        if sqlglot_dialect == "spark":
-            query_tree = spark_transforms(query)
-        elif sqlglot_dialect == "postgres":
-            # Update bytearray syntax
+        if nlq:
+            # NLQ uses DuneSQL schemas but needs to translate to Trino without making schema changes
             query = query.replace("\\x", "0x")
-            query_tree = postgres_transforms(query, dataset)
-
+            query_tree = nlq_postgres_transforms(query)
+        else:
+            if sqlglot_dialect == "spark":
+                query_tree = spark_transforms(query)
+            elif sqlglot_dialect == "postgres":
+                # Update bytearray syntax
+                query = query.replace("\\x", "0x")
+                query_tree = postgres_transforms(query, dataset)
+            elif sqlglot_dialect == "postgres":
+                # Update bytearray syntax
+                query = query.replace("\\x", "0x")
+                query_tree = postgres_transforms(query, dataset)
         # Turn back to SQL
         query = query_tree.sql(dialect=DuneSQL, pretty=True)
 
