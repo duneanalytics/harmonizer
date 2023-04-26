@@ -2,6 +2,7 @@ import re
 
 from sqlglot import TokenType, exp, transforms
 from sqlglot.dialects.trino import Trino
+from sqlglot.helper import find_new_name
 
 
 def explode_to_unnest(expression: exp.Expression):
@@ -16,12 +17,19 @@ def explode_to_unnest(expression: exp.Expression):
 
                 # If the SELECT has a FROM, do a CROSS JOIN with the UNNEST,
                 # otherwise, just do SELECT ... FROM UNNEST
-                unnest = exp.Unnest(expressions=[explode_expression], alias="array_column(col, pos)", ordinality=True)
+                taken = expression.named_selects
+                unnested_column_name = find_new_name(taken, "col")
+                position_column_name = find_new_name(taken, "pos")
+                unnest = exp.Unnest(
+                    expressions=[explode_expression],
+                    alias=f"array_column({unnested_column_name}, {position_column_name})",
+                    ordinality=True,
+                )
                 if expression.args.get("from") is not None:
                     join = exp.Join(this=unnest, kind="CROSS")
-                    expression = expression.select("pos", "col").join(join)
+                    expression = expression.select(position_column_name, unnested_column_name).join(join)
                 else:
-                    expression = expression.select("pos", "col").from_(unnest)
+                    expression = expression.select(position_column_name, unnested_column_name).from_(unnest)
                 continue
 
             elif isinstance(e, exp.Explode):
@@ -43,6 +51,8 @@ def explode_to_unnest(expression: exp.Expression):
 
             # If the SELECT has a FROM, do a CROSS JOIN with the UNNEST,
             # otherwise, just do SELECT ... FROM UNNEST
+            taken = expression.named_selects
+            unnested_column_name = find_new_name(taken, unnested_column_name)
             unnest = exp.Unnest(expressions=[explode_expression], alias=f"array_column({unnested_column_name})")
             if expression.args.get("from") is not None:
                 join = exp.Join(this=unnest, kind="CROSS")
