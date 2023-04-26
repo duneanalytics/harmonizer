@@ -291,7 +291,7 @@ def postgres_transforms(query, dataset):
         query_tree = query_tree.transform(f)
     return query_tree
 
-def nlq_postgres_transforms(query, dataset):
+def nlq_postgres_transforms(query):
     """Apply a series of transforms to the query tree, recursively using SQLGlot's recursive transform function.
 
     Each transform takes and returns a sqlglot.Expression"""
