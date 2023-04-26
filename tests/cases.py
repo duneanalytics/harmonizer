@@ -39,3 +39,17 @@ spark_test_cases = [
     SparkTestCase("test_cases/spark/explode.in", "test_cases/spark/explode.out"),
     SparkTestCase("test_cases/spark/bytea2numeric_0x.in", "test_cases/spark/bytea2numeric_0x.out"),
 ]
+
+
+@dataclass
+class NLQTestCase:
+    in_filename: str
+    out_filename: str
+    dataset: str
+
+
+postgres_cases_to_remove = [
+    PostgresTestCase("test_cases/postgres/dex.in", "test_cases/postgres/dex_ethereum.out", "ethereum"),
+    PostgresTestCase("test_cases/postgres/dex.in", "test_cases/postgres/dex_polygon.out", "polygon"),
+]
+nlq_test_cases = [case for case in postgres_test_cases if case not in postgres_cases_to_remove]
