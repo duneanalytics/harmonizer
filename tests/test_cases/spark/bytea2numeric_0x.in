@@ -1,0 +1,1 @@
+select bytea2numeric('0xdeadbeef')
