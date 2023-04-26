@@ -122,3 +122,8 @@ def test_concat_of_0x_strings():
         "SELECT 0x10, CONCAT(0x10, 0x20, 0x30)"
         == sqlglot.transpile("SELECT concat('0x10'), CONCAT('0x10', '0x20', '0x30')", read="spark", write=DuneSQL)[0]
     )
+    # pipe operator
+    assert (
+        "SELECT BYTEARRAY_CONCAT(0xdeadbeef, 0x10)"
+        == sqlglot.transpile("SELECT '0xdeadbeef' || '0x10'", read="spark", write=DuneSQL)[0]
+    )
