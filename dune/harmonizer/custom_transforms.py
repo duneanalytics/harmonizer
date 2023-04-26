@@ -241,16 +241,6 @@ def cast_timestamp(node):
     return node
 
 
-def fix_boolean(node):
-    """If node.key is 'literal' and contains 'true' or 'false' then cast to boolean"""
-    if node.key == "literal":
-        if any(boolean in node.sql(dialect="trino").lower() for boolean in ("true", "false")):
-            # remove single or double quotes
-            bool_cleaned = node.sql(dialect="trino").replace('"', "").replace("'", "")
-            return sqlglot.parse_one(bool_cleaned, read="trino")
-    return node
-
-
 def warn_sequence(node):
     """Add a warning that links to docs if the query uses generate_series/sequence"""
     if node.name.lower() in ("generate_series", "sequence"):
@@ -293,7 +283,6 @@ def postgres_transforms(query, dataset):
     query_tree = sqlglot.parse_one(query, read="trino")
     transforms = (
         postgres_table_replacements(dataset),
-        fix_boolean,
         cast_numeric,
         cast_timestamp,
         warn_sequence,
@@ -313,7 +302,6 @@ def spark_transforms(query):
     Each transform takes and returns a sqlglot.Expression"""
     query_tree = sqlglot.parse_one(query, read="trino")
     transforms = (
-        fix_boolean,
         cast_numeric,
         cast_timestamp,
         warn_sequence,

@@ -88,3 +88,10 @@ def test_custom_function():
         "SELECT BYTEARRAY_TO_BIGINT(col)"
         == sqlglot.transpile("SELECT bytea2numeric(col)", read="postgres", write=DuneSQL)[0]
     )
+
+
+def test_cast_bool_strings():
+    assert (
+        "SELECT TRUE, FALSE, TRUE = TRUE, 'word'"
+        == sqlglot.transpile("SELECT 'true', 'false', 'true' = true, 'word'", read="postgres", write=DuneSQL)[0]
+    )
