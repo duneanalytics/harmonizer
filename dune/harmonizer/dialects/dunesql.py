@@ -75,6 +75,19 @@ def rename_bytea2numeric_to_bytearray_to_bigint(expression: exp.Expression):
     )
 
 
+def cast_boolean_strings(expression: exp.Expression):
+    """Explicitly cast strings with booleans in them to booleans
+
+    Spark and Postgres implicitly convert strings with 'true' or 'false' into booleans when needed"""
+    return expression.transform(
+        lambda e: exp.Boolean(this=True if e.this.lower() == "true" else False)
+        if isinstance(e, exp.Literal)
+        and e.args["is_string"]
+        and (e.this.lower() == "true" or e.this.lower() == "false")
+        else e
+    )
+
+
 class DuneSQL(Trino):
     """The DuneSQL dialect is the dialect used to execute SQL queries on Dune's crypto data sets
 
@@ -106,6 +119,7 @@ class DuneSQL(Trino):
                     replace_0x_strings_with_hex_strings,
                     remove_lower_around_hex_strings,
                     rename_bytea2numeric_to_bytearray_to_bigint,
+                    cast_boolean_strings,
                 ]
             ),
         }
