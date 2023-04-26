@@ -38,9 +38,12 @@ def _translate_query(query, sqlglot_dialect, dataset=None, nlq=None):
 
         # Perform custom transformations using SQLGlot's parsed representation
         if nlq:
-            # NLQ uses DuneSQL schemas but needs to translate to Trino without making schema changes
-            query = query.replace("\\x", "0x")
-            query_tree = nlq_postgres_transforms(query)
+            if sqlglot_dialect == "spark":
+                query_tree = spark_transforms(query)
+            elif sqlglot_dialect == "postgres":
+                # NLQ uses DuneSQL schemas but needs to translate to Trino without making schema changes
+                query = query.replace("\\x", "0x")
+                query_tree = nlq_postgres_transforms(query)
         else:
             if sqlglot_dialect == "spark":
                 query_tree = spark_transforms(query)
