@@ -1,7 +1,7 @@
 import pytest
 
 from dune.harmonizer import translate_postgres, translate_spark, translate_nlq
-from tests.cases import postgres_test_cases, spark_test_cases
+from tests.cases import postgres_test_cases, spark_test_cases, nlq_test_cases
 from tests.helpers import canonicalize, read_test_case
 
 
