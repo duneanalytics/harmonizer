@@ -19,7 +19,7 @@ def test_translate_spark(test_case):
     assert canonicalize(output) == expected_output
 
 
-@pytest.mark.parametrize("test_case", postgres_test_cases)
+@pytest.mark.parametrize("test_case", nlq_test_cases)
 def test_translate_nlq(test_case):
     query, expected_output = read_test_case(test_case)
     output = translate_nlq(query=query, sqlglot_dialect="postgres")
