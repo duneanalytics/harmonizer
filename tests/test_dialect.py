@@ -81,3 +81,10 @@ def test_explode_to_unnest():
         "SELECT pos, col FROM table AS t CROSS JOIN UNNEST(t.c) WITH ORDINALITY AS array_column(col, pos)"
         == sqlglot.transpile("SELECT posexplode(t.c) FROM table t", read="spark", write=DuneSQL)[0]
     )
+
+
+def test_custom_function():
+    assert (
+        "SELECT BYTEARRAY_TO_BIGINT(col)"
+        == sqlglot.transpile("SELECT bytea2numeric(col)", read="postgres", write=DuneSQL)[0]
+    )

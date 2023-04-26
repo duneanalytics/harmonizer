@@ -270,20 +270,6 @@ def rename_amount_column(query):
     return sqlglot.parse_one(query.sql(dialect="trino").replace("usd_amount", "amount_usd"), read="trino")
 
 
-def bytea2numeric(node):
-    """Replace and warn about bytearray functions"""
-    query = node.sql(dialect="trino")
-    if "bytea2numeric" in query.lower():
-        query = re.sub("bytea2numeric", "bytearray_to_bigint", query, flags=re.IGNORECASE)
-        query = (
-            "/* !Bytea warning: We now have new bytearray functions to cover conversions and stuff like "
-            "length, concat, substring, etc. Check out the docs here: "
-            "https://dune.com/docs/reference/dune-v2/query-engine/#byte-array-to-numeric-functions */"
-            "\n\n"
-        ) + query
-    return sqlglot.parse_one(query, read="trino")
-
-
 def fix_bytearray_param(query):
     """Remove lower function call from bytearray parameters"""
     pattern = r"lower\(\s*['\"]\{\{(.*?)\}\}['\"]\s*\)"
@@ -315,7 +301,6 @@ def postgres_transforms(query, dataset):
         chain_where(dataset),
         bytearray_parameter_fix,
         rename_amount_column,
-        bytea2numeric,
     )
     for f in transforms:
         query_tree = query_tree.transform(f)
@@ -332,7 +317,6 @@ def spark_transforms(query):
         cast_numeric,
         cast_timestamp,
         warn_sequence,
-        bytea2numeric,
     )
     for f in transforms:
         query_tree = query_tree.transform(f)
