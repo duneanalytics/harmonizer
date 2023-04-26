@@ -67,7 +67,7 @@ def remove_lower_around_hex_strings(expression: exp.Expression):
 
 
 def rename_bytea2numeric_to_bytearray_to_bigint(expression: exp.Expression):
-    """Rename our custom Postgres UDF `bytea2numeric` to our Trino function `bytearray_to_bigint`"""
+    """Rename our custom UDF `bytea2numeric` to our Trino function `bytearray_to_bigint`"""
     return expression.transform(
         lambda e: exp.Anonymous(this="bytearray_to_bigint", expressions=e.expressions)
         if isinstance(e, exp.Anonymous) and e.name.lower() == "bytea2numeric"
