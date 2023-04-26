@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "dune-harmonizer"
-version = "0.8.0"
+version = "0.9.0"
 description = ""
 authors = ["Vegard Stikbakke <vegard@dune.com>"]
 readme = "README.md"
