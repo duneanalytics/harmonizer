@@ -127,3 +127,8 @@ def test_concat_of_0x_strings():
         "SELECT BYTEARRAY_CONCAT(0xdeadbeef, 0x10)"
         == sqlglot.transpile("SELECT '0xdeadbeef' || '0x10'", read="spark", write=DuneSQL)[0]
     )
+    # chained pipes
+    assert (
+        "SELECT BYTEARRAY_CONCAT(BYTEARRAY_CONCAT(0x10, 0x20), 0x30)"
+        == sqlglot.transpile("SELECT '0x10' || '0x20' || '0x30'", read="spark", write=DuneSQL)[0]
+    )
