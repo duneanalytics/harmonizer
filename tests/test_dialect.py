@@ -110,3 +110,15 @@ def test_cast_timestamp_strings():
         "SELECT CAST('2023-01-01' AS TIMESTAMP)"
         == sqlglot.transpile("SELECT '2023-01-01'", read="postgres", write=DuneSQL)[0]
     )
+
+
+def test_concat_of_0x_strings():
+    assert (
+        "SELECT BYTEARRAY_CONCAT(0xdeadbeef, 0x10)"
+        == sqlglot.transpile("SELECT concat('0xdeadbeef', '0x10')", read="spark", write=DuneSQL)[0]
+    )
+    # doesn't handle other cases than exactly two arguments, but one argument is optimized away by SQLGlot
+    assert (
+        "SELECT 0x10, CONCAT(0x10, 0x20, 0x30)"
+        == sqlglot.transpile("SELECT concat('0x10'), CONCAT('0x10', '0x20', '0x30')", read="spark", write=DuneSQL)[0]
+    )

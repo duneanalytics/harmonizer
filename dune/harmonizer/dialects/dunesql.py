@@ -110,6 +110,17 @@ def cast_date_strings(expression: exp.Expression):
     )
 
 
+def concat_of_hex_string_to_bytearray_concat(expression: exp.Expression):
+    """Replace CONCAT with bytearray_concat function call if arguments are hex strings"""
+    return expression.transform(
+        lambda e: exp.Anonymous(this="bytearray_concat", expressions=e.expressions)
+        if isinstance(e, exp.Concat)
+        and all(isinstance(arg, exp.HexString) for arg in e.expressions)
+        and len(e.expressions) == 2  # bytearray_concat isn't variadic; only supports 2 arguments
+        else e
+    )
+
+
 class DuneSQL(Trino):
     """The DuneSQL dialect is the dialect used to execute SQL queries on Dune's crypto data sets
 
@@ -143,6 +154,7 @@ class DuneSQL(Trino):
                     rename_bytea2numeric_to_bytearray_to_bigint,
                     cast_boolean_strings,
                     cast_date_strings,
+                    concat_of_hex_string_to_bytearray_concat,
                 ]
             ),
         }
