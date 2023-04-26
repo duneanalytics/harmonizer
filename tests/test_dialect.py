@@ -20,8 +20,8 @@ def test_generate_hexstring():
 def test_force_string_with_0x_to_hexstring():
     assert "SELECT 0xdeadbeef" == sqlglot.transpile("SELECT '0xdeadbeef'", read="spark", write=DuneSQL)[0]
     assert (
-        "SELECT 0xdeadbeef, 0xdeadbeef, 0x1 || 0x2"
-        == sqlglot.transpile("SELECT '0xdeadbeef', lower('0xdeadbeef'), '0x1' || '0x2'", read="spark", write=DuneSQL)[0]
+        "SELECT 0xdeadbeef, 0xdeadbeef"
+        == sqlglot.transpile("SELECT '0xdeadbeef', lower('0xdeadbeef')", read="spark", write=DuneSQL)[0]
     )
     assert (
         "SELECT * FROM table WHERE col = 0xdeadbeef"
@@ -109,4 +109,26 @@ def test_cast_timestamp_strings():
     assert (
         "SELECT CAST('2023-01-01' AS TIMESTAMP)"
         == sqlglot.transpile("SELECT '2023-01-01'", read="postgres", write=DuneSQL)[0]
+    )
+
+
+def test_concat_of_0x_strings():
+    assert (
+        "SELECT BYTEARRAY_CONCAT(0xdeadbeef, 0x10)"
+        == sqlglot.transpile("SELECT concat('0xdeadbeef', '0x10')", read="spark", write=DuneSQL)[0]
+    )
+    # doesn't handle other cases than exactly two arguments, but one argument is optimized away by SQLGlot
+    assert (
+        "SELECT 0x10, CONCAT(0x10, 0x20, 0x30)"
+        == sqlglot.transpile("SELECT concat('0x10'), CONCAT('0x10', '0x20', '0x30')", read="spark", write=DuneSQL)[0]
+    )
+    # pipe operator
+    assert (
+        "SELECT BYTEARRAY_CONCAT(0xdeadbeef, 0x10)"
+        == sqlglot.transpile("SELECT '0xdeadbeef' || '0x10'", read="spark", write=DuneSQL)[0]
+    )
+    # chained pipes
+    assert (
+        "SELECT BYTEARRAY_CONCAT(BYTEARRAY_CONCAT(0x10, 0x20), 0x30)"
+        == sqlglot.transpile("SELECT '0x10' || '0x20' || '0x30'", read="spark", write=DuneSQL)[0]
     )

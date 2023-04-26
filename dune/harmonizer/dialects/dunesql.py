@@ -100,7 +100,7 @@ def _looks_like_timestamp(e: str):
 
 
 def cast_date_strings(expression: exp.Expression):
-    """Explicitly cast strings that look like timestamps to timestamps
+    """Explicitly cast all strings that look like timestamps to timestamps
 
     Spark and Postgres implicitly convert strings like this into timestamps when needed"""
     return expression.transform(
@@ -108,6 +108,38 @@ def cast_date_strings(expression: exp.Expression):
         if isinstance(e, exp.Literal) and e.args["is_string"] and _looks_like_timestamp(e.this)
         else e
     )
+
+
+def concat_of_hex_string_to_bytearray_concat(expression: exp.Expression):
+    """Replace any CONCAT call with bytearray_concat function call if arguments are hex strings"""
+    return expression.transform(
+        lambda e: exp.Anonymous(this="bytearray_concat", expressions=e.expressions)
+        if isinstance(e, exp.Concat)
+        and all(isinstance(arg, exp.HexString) for arg in e.expressions)
+        and len(e.expressions) == 2  # bytearray_concat isn't variadic; only supports 2 arguments
+        else e
+    )
+
+
+def pipe_expression_to_bytearray_concat_call(e: exp.Expression):
+    """Replace the pipe operator || in this expression with a bytearray_concat function call
+
+    If arguments are hex strings. Not recursive!
+    """
+    if isinstance(e, exp.DPipe) and isinstance(e.right, exp.HexString):
+        if isinstance(e.left, exp.HexString):
+            return exp.Anonymous(this="bytearray_concat", expressions=[e.left, e.right])
+        elif isinstance(e.left, exp.DPipe):
+            # call recursively on left to handle nested pipes
+            return exp.Anonymous(
+                this="bytearray_concat", expressions=[pipe_of_hex_strings_to_bytearray_concat(e.left), e.right]
+            )
+    return e
+
+
+def pipe_of_hex_strings_to_bytearray_concat(expression: exp.Expression):
+    """Replace all || with bytearray_concat function call if arguments are hex strings"""
+    return expression.transform(pipe_expression_to_bytearray_concat_call)
 
 
 class DuneSQL(Trino):
@@ -143,6 +175,8 @@ class DuneSQL(Trino):
                     rename_bytea2numeric_to_bytearray_to_bigint,
                     cast_boolean_strings,
                     cast_date_strings,
+                    concat_of_hex_string_to_bytearray_concat,
+                    pipe_of_hex_strings_to_bytearray_concat,
                 ]
             ),
         }
