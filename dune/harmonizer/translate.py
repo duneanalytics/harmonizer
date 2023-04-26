@@ -1,4 +1,5 @@
 import re
+
 import sqlglot
 from sqlglot import ParseError
 
@@ -7,10 +8,10 @@ from dune.harmonizer.custom_transforms import (
     double_quoted_param_left_placeholder,
     double_quoted_param_right_placeholder,
     fix_bytearray_param,
+    nlq_postgres_transforms,
     parameter_placeholder,
     postgres_transforms,
     spark_transforms,
-    nlq_postgres_transforms,
 )
 from dune.harmonizer.dialects.dunesql import DuneSQL
 from dune.harmonizer.errors import DuneTranslationError
