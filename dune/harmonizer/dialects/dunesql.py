@@ -66,6 +66,15 @@ def remove_lower_around_hex_strings(expression: exp.Expression):
     )
 
 
+def rename_bytea2numeric_to_bytearray_to_bigint(expression: exp.Expression):
+    """Rename our custom Postgres UDF `bytea2numeric` to our Trino function `bytearray_to_bigint`"""
+    return expression.transform(
+        lambda e: exp.Anonymous(this="bytearray_to_bigint", expressions=e.expressions)
+        if isinstance(e, exp.Anonymous) and e.name.lower() == "bytea2numeric"
+        else e
+    )
+
+
 class DuneSQL(Trino):
     """The DuneSQL dialect is the dialect used to execute SQL queries on Dune's crypto data sets
 
@@ -96,7 +105,7 @@ class DuneSQL(Trino):
                     explode_to_unnest,
                     replace_0x_strings_with_hex_strings,
                     remove_lower_around_hex_strings,
-                    # explode_to_unnest,
+                    rename_bytea2numeric_to_bytearray_to_bigint,
                 ]
             ),
         }
