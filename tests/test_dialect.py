@@ -1,6 +1,6 @@
 import sqlglot
 
-from dune.harmonizer.dialects.dunesql import DuneSQL
+from dune.harmonizer.dialects.dunesql import DuneSQL, _looks_like_timestamp
 
 
 def test_parse_hexstring():
@@ -94,4 +94,19 @@ def test_cast_bool_strings():
     assert (
         "SELECT TRUE, FALSE, TRUE = TRUE, 'word'"
         == sqlglot.transpile("SELECT 'true', 'false', 'true' = true, 'word'", read="postgres", write=DuneSQL)[0]
+    )
+
+
+def test_looks_like_timestamp():
+    assert _looks_like_timestamp("2023-01-01")
+    assert _looks_like_timestamp("2023-01-01 00:00")
+    assert _looks_like_timestamp("2023-01-01 00:00:00")
+    assert not _looks_like_timestamp("2023-01-01 x")
+    assert not _looks_like_timestamp("x 2023-01-01")
+
+
+def test_cast_timestamp_strings():
+    assert (
+        "SELECT CAST('2023-01-01' AS TIMESTAMP)"
+        == sqlglot.transpile("SELECT '2023-01-01'", read="postgres", write=DuneSQL)[0]
     )
