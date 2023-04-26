@@ -1,3 +1,5 @@
+import re
+
 from sqlglot import TokenType, exp, transforms
 from sqlglot.dialects.trino import Trino
 
@@ -88,6 +90,26 @@ def cast_boolean_strings(expression: exp.Expression):
     )
 
 
+date_regex = re.compile(r"^\d{4}-\d{2}-\d{2}$")
+timestamp_regex = re.compile(r"^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$")
+timestamp_regex_seconds = re.compile(r"^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$")
+
+
+def _looks_like_timestamp(e: str):
+    return timestamp_regex.match(e) or timestamp_regex_seconds.match(e) or date_regex.match(e)
+
+
+def cast_date_strings(expression: exp.Expression):
+    """Explicitly cast strings that look like timestamps to timestamps
+
+    Spark and Postgres implicitly convert strings like this into timestamps when needed"""
+    return expression.transform(
+        lambda e: exp.Cast(this=e, to=exp.DataType.build("timestamp"))
+        if isinstance(e, exp.Literal) and e.args["is_string"] and _looks_like_timestamp(e.this)
+        else e
+    )
+
+
 class DuneSQL(Trino):
     """The DuneSQL dialect is the dialect used to execute SQL queries on Dune's crypto data sets
 
@@ -120,6 +142,7 @@ class DuneSQL(Trino):
                     remove_lower_around_hex_strings,
                     rename_bytea2numeric_to_bytearray_to_bigint,
                     cast_boolean_strings,
+                    cast_date_strings,
                 ]
             ),
         }

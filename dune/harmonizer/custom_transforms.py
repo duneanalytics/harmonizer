@@ -226,13 +226,9 @@ def cast_numeric(node):
     return node
 
 
-def cast_timestamp(node):
-    """Look for date-like literals and params and cast these as timestamps"""
+def cast_timestamp_parameters(node):
+    """Look for parameters with 'date' or 'time' in, and cast these as timestamps"""
     if node.key == "literal":
-        # and contains 'yyyy-mm-dd' format then cast to timestamp
-        if re.search(r"\d{4}-\d{2}-\d{2}", node.sql(dialect="trino")):
-            return sqlglot.parse_one("timestamp " + node.sql(dialect="trino"), read="trino")
-
         # or if it is a param that contains date/time
         pattern = "('" + param_left_placeholder + r".*?" + param_right_placeholder + "')"
         if any(d in node.sql(dialect="trino").lower() for d in ("date", "time")):
@@ -284,7 +280,7 @@ def postgres_transforms(query, dataset):
     transforms = (
         postgres_table_replacements(dataset),
         cast_numeric,
-        cast_timestamp,
+        cast_timestamp_parameters,
         warn_sequence,
         dex_trades_fixes,
         chain_where(dataset),
@@ -303,7 +299,7 @@ def spark_transforms(query):
     query_tree = sqlglot.parse_one(query, read="trino")
     transforms = (
         cast_numeric,
-        cast_timestamp,
+        cast_timestamp_parameters,
         warn_sequence,
     )
     for f in transforms:
