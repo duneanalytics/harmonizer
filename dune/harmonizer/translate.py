@@ -11,6 +11,7 @@ from dune.harmonizer.custom_transforms import (
     parameter_placeholder,
     postgres_transforms,
     spark_transforms,
+    postgres_transforms_syntax_only,
 )
 from dune.harmonizer.dialects.dunesql import DuneSQL
 from dune.harmonizer.errors import DuneTranslationError
@@ -23,7 +24,7 @@ def _clean_dataset(dataset):
     raise ValueError(f"Unknown dataset: {dataset}")
 
 
-def _translate_query(query, sqlglot_dialect, dataset=None):
+def _translate_query(query, sqlglot_dialect, dataset=None, syntax_only=False):
     """Translate a query using SQLGLot plus custom rules"""
     try:
         # Insert placeholders for the parameters we use in Dune (`{{ param }}`), SQLGlot doesn't handle those
@@ -41,7 +42,10 @@ def _translate_query(query, sqlglot_dialect, dataset=None):
         elif sqlglot_dialect == "postgres":
             # Update bytearray syntax
             query = query.replace("\\x", "0x")
-            query_tree = postgres_transforms(query, dataset)
+            if syntax_only:
+                query_tree = postgres_transforms_syntax_only(query)
+            else:
+                query_tree = postgres_transforms(query, dataset)
 
         # Turn back to SQL
         query = query_tree.sql(dialect=DuneSQL, pretty=True)

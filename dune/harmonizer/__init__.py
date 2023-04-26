@@ -10,3 +10,8 @@ def translate_postgres(query, dataset):
     """Translate a Dune query from PostgreSQL to DuneSQL"""
     dataset = _clean_dataset(dataset)
     return _translate_query(query, sqlglot_dialect="postgres", dataset=dataset)
+
+def translate_syntax(query, engine):
+    """Translate a Dune query just syntax for either 'spark' or 'postgres'"""
+    return _translate_query(query, sqlglot_dialect="engine", syntax_only=True)
+

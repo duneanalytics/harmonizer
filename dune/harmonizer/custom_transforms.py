@@ -291,6 +291,23 @@ def postgres_transforms(query, dataset):
         query_tree = query_tree.transform(f)
     return query_tree
 
+def postgres_transforms_syntax_only(query):
+    """Apply a series of transforms to the query tree, recursively using SQLGlot's recursive transform function. Only to syntax, not to tables.
+
+    Each transform takes and returns a sqlglot.Expression"""
+    query_tree = sqlglot.parse_one(query, read="trino")
+    transforms = (
+        fix_boolean,
+        cast_numeric,
+        cast_timestamp,
+        warn_sequence,
+        bytearray_parameter_fix,
+        rename_amount_column,
+        bytea2numeric,
+    )
+    for f in transforms:
+        query_tree = query_tree.transform(f)
+    return query_tree
 
 def spark_transforms(query):
     """Apply a series of transforms to the query tree, recursively using SQLGlot's recursive transform function.
