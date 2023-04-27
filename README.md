@@ -3,15 +3,16 @@
 Harmonizer is a library we have developed at Dune to translate Dune queries from PostgreSQL and Spark SQL to DuneSQL.
 We currently use this library in our migration service in the app.
 
-A query is translated through two steps:
+A query is translated through three steps:
 
 1. We use [SQLGlot](https://github.com/tobymao/sqlglot) to transpile the query. 
-This is an excellent tool which parses a SQL query into an Abstract Syntax Tree (AST), 
-and then translates it to a different dialect. 
-We use it to translate from Spark SQL to DuneSQL, and from PostgreSQL to DuneSQL.
-2. We pass the query through custom rules to make additional changes to the query. Examples of such rules are
-   - mapping known changes in table names from the legacy Postgres datasets to corresponding table names in DuneSQL
+This is an excellent tool for working with SQL queries. We use it to parse the query into an Abstract Syntax Tree (AST),
+manipulating that tree, and then generating the SQL for that query in a different dialect.
+We translate from Spark SQL to DuneSQL, and from PostgreSQL to DuneSQL.
+2. We create a DuneSQL SQLGlot dialect, allowing us to do stuff like
    - translating string literals '0x...' to 0x... in DuneSQL, since we [support native hex literals](https://dune.com/docs/query/DuneSQL-reference/datatypes/#varbinary).
+3. We pass the query through custom rules to make additional changes to the query. Examples of such rules are
+   - mapping known changes in table names from the legacy Postgres datasets to corresponding table names in DuneSQL
 
 ## Getting started
 
