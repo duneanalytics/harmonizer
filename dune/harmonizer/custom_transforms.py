@@ -272,19 +272,32 @@ def chain_where(dataset):
     }[dataset]
 
 
-def postgres_transforms(query, dataset):
+def postgres_transforms(query):
     """Apply a series of transforms to the query tree, recursively using SQLGlot's recursive transform function.
 
     Each transform takes and returns a sqlglot.Expression"""
     query_tree = sqlglot.parse_one(query, read="trino")
     transforms = (
-        postgres_table_replacements(dataset),
         cast_numeric,
         cast_timestamp_parameters,
         warn_sequence,
+        bytearray_parameter_fix,
+    )
+    for f in transforms:
+        query_tree = query_tree.transform(f)
+    return query_tree
+
+
+def v1_tables_to_v2_tables(query_tree, dataset):
+    """Apply a series of transforms to the query tree, recursively using SQLGlot's recursive transform function.
+
+    Each transform takes and returns a sqlglot.Expression
+
+    These transforms are concerned with translating from the v1 tables in Postgres datasets to the v2 tables"""
+    transforms = (
+        postgres_table_replacements(dataset),
         dex_trades_fixes,
         chain_where(dataset),
-        bytearray_parameter_fix,
         rename_amount_column,
     )
     for f in transforms:
