@@ -3,6 +3,7 @@ from functools import partial
 
 import sqlglot
 
+from dune.harmonizer.dialects.dunesql import DuneSQL
 from dune.harmonizer.table_replacements import postgres_table_replacements
 
 
@@ -128,7 +129,7 @@ def chain_where_blockchain(node, blockchain):
     # only run this for the highest level select, then it will recurse down
     if node.key == "select" and node.parent is None:
         statement = recurse_where(node, required_tables, condition_add)  # function defined above
-        return sqlglot.parse_one(statement, read="trino")
+        return sqlglot.parse_one(statement, read=DuneSQL)
     return node
 
 
@@ -143,9 +144,9 @@ def dex_trades_fixes(node):
     """Fixes to dex.trades"""
     # doesn't matter if subquery or not, it will replace the found filter.
     if node.key == "select":
-        if "dex.in.trades" in node.sql(dialect="trino").replace('"', ""):
+        if "dex.in.trades" in node.sql(dialect=DuneSQL).replace('"', ""):
             # change exchange_contract_address to project_contract_address
-            final_where = node.sql(dialect="trino").replace("exchange_contract_address", "project_contract_address")
+            final_where = node.sql(dialect=DuneSQL).replace("exchange_contract_address", "project_contract_address")
 
             # removing category from WHERE statement since that isn't in dex.in.trades anymore
             clean_matches = [
@@ -179,7 +180,7 @@ def dex_trades_fixes(node):
                 flags=re.IGNORECASE,
             )
 
-            return sqlglot.parse_one(final_where, read="trino")
+            return sqlglot.parse_one(final_where, read=DuneSQL)
     return node
 
 
@@ -253,7 +254,7 @@ def warn_sequence(node):
 
 def rename_amount_column(query):
     """Rename the usd_amount column"""
-    return sqlglot.parse_one(query.sql(dialect="trino").replace("usd_amount", "amount_usd"), read="trino")
+    return sqlglot.parse_one(query.sql(dialect=DuneSQL).replace("usd_amount", "amount_usd"), read=DuneSQL)
 
 
 def fix_bytearray_param(query):
@@ -272,35 +273,34 @@ def chain_where(dataset):
     }[dataset]
 
 
-def postgres_transforms(query, dataset):
+def postgres_transforms(query):
     """Apply a series of transforms to the query tree, recursively using SQLGlot's recursive transform function.
 
     Each transform takes and returns a sqlglot.Expression"""
     query_tree = sqlglot.parse_one(query, read="trino")
     transforms = (
-        postgres_table_replacements(dataset),
         cast_numeric,
         cast_timestamp_parameters,
         warn_sequence,
-        dex_trades_fixes,
-        chain_where(dataset),
         bytearray_parameter_fix,
-        rename_amount_column,
     )
     for f in transforms:
         query_tree = query_tree.transform(f)
     return query_tree
 
 
-def nlq_postgres_transforms(query):
+def v1_tables_to_v2_tables(query, dataset):
     """Apply a series of transforms to the query tree, recursively using SQLGlot's recursive transform function.
 
-    Each transform takes and returns a sqlglot.Expression"""
-    query_tree = sqlglot.parse_one(query, read="trino")
+    Each transform takes and returns a sqlglot.Expression
+
+    These transforms are concerned with translating from the v1 tables in Postgres datasets to the v2 tables"""
+    query_tree = sqlglot.parse_one(query, read=DuneSQL)
     transforms = (
-        cast_numeric,
-        cast_timestamp_parameters,
-        warn_sequence,
+        postgres_table_replacements(dataset),
+        dex_trades_fixes,
+        chain_where(dataset),
+        rename_amount_column,
     )
     for f in transforms:
         query_tree = query_tree.transform(f)

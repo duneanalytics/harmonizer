@@ -2,6 +2,8 @@ import re
 
 import sqlglot
 
+from dune.harmonizer.dialects.dunesql import DuneSQL
+
 
 def postgres_table_replacements(dataset):
     """Return a function to do table replacements for Postgres -> DuneSQL, with appropriate dataset"""
@@ -13,7 +15,7 @@ def postgres_table_replacements(dataset):
         if not isinstance(node, sqlglot.exp.Table):
             return node
 
-        query = node.sql(dialect="trino")
+        query = node.sql(dialect=DuneSQL)
 
         spellbook_mapping = {
             "erc20.ERC20_evt_Transfer": "erc20_ethereum.evt_Transfer",
@@ -32,7 +34,7 @@ def postgres_table_replacements(dataset):
             # if an alias is used for the table, add it back
             if node.unalias().alias is not None:
                 spell_table = spell_table + " as " + node.unalias().alias
-            return sqlglot.parse_one(spell_table, read="trino")
+            return sqlglot.parse_one(spell_table, read=DuneSQL)
 
         # else if decoded table, then add _ethereum to the table name
         elif any(decoded in node.name for decoded in ["_evt_", "_call_"]):
@@ -40,7 +42,7 @@ def postgres_table_replacements(dataset):
             # if an alias is used, add it back
             if node.unalias().alias is not None:
                 chain_added_table = chain_added_table + " as " + node.unalias().alias
-            return sqlglot.parse_one(chain_added_table, read="trino")
+            return sqlglot.parse_one(chain_added_table, read=DuneSQL)
 
         return node
 
