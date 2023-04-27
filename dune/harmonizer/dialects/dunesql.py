@@ -102,6 +102,7 @@ def cast_boolean_strings(expression: exp.Expression):
         if isinstance(e, exp.Literal)
         and e.args["is_string"]
         and (e.this.lower() == "true" or e.this.lower() == "false")
+        and (not isinstance(e.parent, exp.Cast))
         else e
     )
 
@@ -121,7 +122,10 @@ def cast_date_strings(expression: exp.Expression):
     Spark and Postgres implicitly convert strings like this into timestamps when needed"""
     return expression.transform(
         lambda e: exp.Cast(this=e, to=exp.DataType.build("timestamp"))
-        if isinstance(e, exp.Literal) and e.args["is_string"] and _looks_like_timestamp(e.this)
+        if isinstance(e, exp.Literal)
+        and e.args["is_string"]
+        and _looks_like_timestamp(e.this)
+        and (not isinstance(e.parent, exp.Cast))
         else e
     )
 
