@@ -128,6 +128,14 @@ def test_cast_bool_strings():
         "SELECT TRUE, FALSE, TRUE = TRUE, 'word'"
         == sqlglot.transpile("SELECT 'true', 'false', 'true' = true, 'word'", read="postgres", write=DuneSQL)[0]
     )
+    # must be idempotent
+    assert (
+        "SELECT TRUE"
+        == sqlglot.transpile(
+            sqlglot.transpile("SELECT 'true'", read="postgres", write=DuneSQL)[0],
+            read=DuneSQL,
+        )[0]
+    )
 
 
 def test_looks_like_timestamp():
@@ -142,6 +150,14 @@ def test_cast_timestamp_strings():
     assert (
         "SELECT CAST('2023-01-01' AS TIMESTAMP)"
         == sqlglot.transpile("SELECT '2023-01-01'", read="postgres", write=DuneSQL)[0]
+    )
+    # must be idempotent
+    assert (
+        "SELECT CAST('2023-01-01' AS TIMESTAMP)"
+        == sqlglot.transpile(
+            sqlglot.transpile("SELECT '2023-01-01'", read="postgres", write=DuneSQL)[0],
+            read=DuneSQL,
+        )[0]
     )
 
 
