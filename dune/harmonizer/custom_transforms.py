@@ -329,14 +329,6 @@ def add_warnings_and_banner(query):
             "\n\n"
         ) + query
 
-    # if brackets [ ] are used, warn about array indexing
-    if re.search(r"\[.*\]", query):
-        query = (
-            "/* !Array warning: Arrays in dune SQL are indexed from 1, not 0. "
-            "The migrator will not catch this if you indexed using variables */"
-            "\n\n"
-        ) + query
-
     if "dune_user_generated" in query.lower():
         query = (
             "/* !Generated view warning: you can't query views in dune_user_generated anymore. "
