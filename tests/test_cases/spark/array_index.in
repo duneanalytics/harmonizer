@@ -1,1 +1,1 @@
-select array_col[f(x) - 1]
+select array_col[(1 - 1) + (1 - 1)]

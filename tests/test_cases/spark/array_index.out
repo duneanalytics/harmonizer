@@ -1,6 +1,4 @@
 /* Success! If you're still running into issues, check out https://dune.com/docs/query/syntax-differences/ or reach out in the #dune-sql Discord channel. */
 
-/* !Array warning: Arrays in dune SQL are indexed from 1, not 0. The migrator will not catch this if you indexed using variables */
-
 SELECT
-  array_col[F(x) - 1]
+  array_col[1]
