@@ -38,6 +38,7 @@ spark_test_cases = [
     SparkTestCase("test_cases/spark/params.in", "test_cases/spark/params.out"),
     SparkTestCase("test_cases/spark/explode.in", "test_cases/spark/explode.out"),
     SparkTestCase("test_cases/spark/bytea2numeric_0x.in", "test_cases/spark/bytea2numeric_0x.out"),
+    SparkTestCase("test_cases/spark/array_index.in", "test_cases/spark/array_index.out"),
 ]
 
 
