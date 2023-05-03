@@ -16,6 +16,9 @@ postgres_test_cases = [
     PostgresTestCase("test_cases/postgres/bytea.in", "test_cases/postgres/bytea.out", "ethereum"),
     PostgresTestCase("test_cases/postgres/bytea2numeric.in", "test_cases/postgres/bytea2numeric.out", "ethereum"),
     PostgresTestCase("test_cases/param.in", "test_cases/param.out", "ethereum"),
+    PostgresTestCase(
+        "test_cases/postgres/table_replacement.in", "test_cases/postgres/table_replacement.out", "optimism"
+    ),
 ]
 
 
@@ -52,5 +55,8 @@ class NLQTestCase:
 postgres_cases_to_remove = [
     PostgresTestCase("test_cases/postgres/dex.in", "test_cases/postgres/dex_ethereum.out", "ethereum"),
     PostgresTestCase("test_cases/postgres/dex.in", "test_cases/postgres/dex_polygon.out", "polygon"),
+    PostgresTestCase(
+        "test_cases/postgres/table_replacement.in", "test_cases/postgres/table_replacement.out", "optimism"
+    ),
 ]
 nlq_test_cases = [case for case in postgres_test_cases if case not in postgres_cases_to_remove]

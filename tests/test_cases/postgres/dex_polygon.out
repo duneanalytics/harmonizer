@@ -10,6 +10,8 @@ FROM (
     SELECT
       *
     FROM dex."trades"
+    WHERE
+      blockchain = 'polygon'
   ) AS a
 ) AS d /* test comment */
 LEFT JOIN prices.usd AS p
