@@ -3,4 +3,4 @@
 SELECT
   exploded
 FROM foo
-CROSS JOIN UNNEST(column) AS array_column(exploded)
+CROSS JOIN UNNEST(column) AS _u(exploded)
