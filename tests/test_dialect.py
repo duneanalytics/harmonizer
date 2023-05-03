@@ -43,19 +43,19 @@ def test_explode_to_unnest():
     # plain select
     assert (
         sqlglot.transpile("SELECT explode(account_keys) FROM solana.transactions", read="postgres", write=DuneSQL)[0]
-        == "SELECT col FROM solana.transactions CROSS JOIN UNNEST(account_keys) AS array_column(col)"
+        == "SELECT col FROM solana.transactions CROSS JOIN UNNEST(account_keys) AS _u(col)"
     )
     # alias
     assert (
         sqlglot.transpile(
             "SELECT explode(account_keys) AS exploded FROM solana.transactions", read="postgres", write=DuneSQL
         )[0]
-        == "SELECT exploded FROM solana.transactions CROSS JOIN UNNEST(account_keys) AS array_column(exploded)"
+        == "SELECT exploded FROM solana.transactions CROSS JOIN UNNEST(account_keys) AS _u(exploded)"
     )
     # original select expression has no FROM clause, so should just be FROM UNNEST
     assert (
         sqlglot.transpile("SELECT explode(sequence(1, 2))", read="spark", write=DuneSQL)[0]
-        == "SELECT col FROM UNNEST(SEQUENCE(1, 2)) AS array_column(col)"
+        == "SELECT col FROM UNNEST(SEQUENCE(1, 2)) AS _u(col)"
     )
     # posexplode from a table
     assert sqlglot.transpile("SELECT posexplode(sequence(2, 3)) FROM solana.transactions", read="spark", write=DuneSQL)[
@@ -63,39 +63,39 @@ def test_explode_to_unnest():
     ] == " ".join(
         (
             "SELECT pos, col FROM solana.transactions",
-            "CROSS JOIN UNNEST(SEQUENCE(2, 3)) WITH ORDINALITY AS array_column(col, pos)",
+            "CROSS JOIN UNNEST(SEQUENCE(2, 3)) WITH ORDINALITY AS _u(col, pos)",
         )
     )
     # posexplode, no from
     assert (
-        "SELECT pos, col FROM UNNEST(SEQUENCE(2, 3)) WITH ORDINALITY AS array_column(col, pos)"
+        "SELECT pos, col FROM UNNEST(SEQUENCE(2, 3)) WITH ORDINALITY AS _u(col, pos)"
         == sqlglot.transpile("SELECT posexplode(sequence(2, 3))", read="spark", write=DuneSQL)[0]
     )
     # explode with table alias
     assert (
-        "SELECT col FROM table AS t CROSS JOIN UNNEST(t.c) AS array_column(col)"
+        "SELECT col FROM table AS t CROSS JOIN UNNEST(t.c) AS _u(col)"
         == sqlglot.transpile("SELECT explode(t.c) FROM table t", read="spark", write=DuneSQL)[0]
     )
     # posexplode with table alias
     assert (
-        "SELECT pos, col FROM table AS t CROSS JOIN UNNEST(t.c) WITH ORDINALITY AS array_column(col, pos)"
+        "SELECT pos, col FROM table AS t CROSS JOIN UNNEST(t.c) WITH ORDINALITY AS _u(col, pos)"
         == sqlglot.transpile("SELECT posexplode(t.c) FROM table t", read="spark", write=DuneSQL)[0]
     )
     # explode with clashing column names
     assert (
-        "SELECT col, col_2 FROM array_column CROSS JOIN UNNEST(SEQUENCE(2, 3)) AS array_column(col_2)"
-        == sqlglot.transpile("SELECT col, explode(sequence(2, 3)) FROM array_column", read="spark", write=DuneSQL)[0]
+        "SELECT col, col_2 FROM _u CROSS JOIN UNNEST(SEQUENCE(2, 3)) AS _u_2(col_2)"
+        == sqlglot.transpile("SELECT col, explode(sequence(2, 3)) FROM _u", read="spark", write=DuneSQL)[0]
     )
     # posexplode with clashing column names
     assert (
         " ".join(
             (
-                "SELECT pos, col, pos_2, col_2 FROM array_column",
-                "CROSS JOIN UNNEST(SEQUENCE(2, 3)) WITH ORDINALITY AS array_column(col_2, pos_2)",
+                "SELECT pos, col, pos_2, col_2 FROM _u",
+                "CROSS JOIN UNNEST(SEQUENCE(2, 3)) WITH ORDINALITY AS _u_2(col_2, pos_2)",
             )
         )
         == sqlglot.transpile(
-            "SELECT pos, col, posexplode(sequence(2, 3)) FROM array_column",
+            "SELECT pos, col, posexplode(sequence(2, 3)) FROM _u",
             read="spark",
             write=DuneSQL,
         )[0]
@@ -104,12 +104,12 @@ def test_explode_to_unnest():
     assert (
         " ".join(
             (
-                "SELECT pos, col, pos_2, col_2 FROM tbl AS array_column",
-                "CROSS JOIN UNNEST(SEQUENCE(2, 3)) WITH ORDINALITY AS array_column(col_2, pos_2)",
+                "SELECT pos, col, pos_2, col_2 FROM tbl AS _u",
+                "CROSS JOIN UNNEST(SEQUENCE(2, 3)) WITH ORDINALITY AS _u_2(col_2, pos_2)",
             )
         )
         == sqlglot.transpile(
-            "SELECT pos, col, posexplode(sequence(2, 3)) FROM tbl AS array_column",
+            "SELECT pos, col, posexplode(sequence(2, 3)) FROM tbl AS _u",
             read="spark",
             write=DuneSQL,
         )[0]

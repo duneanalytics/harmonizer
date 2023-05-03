@@ -5,69 +5,6 @@ from sqlglot.dialects.trino import Trino
 from sqlglot.helper import find_new_name
 
 
-def explode_to_unnest(expression: exp.Expression):
-    """Convert posexplode, explode, and aliased explode to unnest"""
-    if isinstance(expression, exp.Select):
-        for e in expression.args.get("expressions", []):
-            if isinstance(e, exp.Posexplode):
-                explode_expression = e.args["this"]
-
-                # Remove the `posexplode()` expression from the select
-                expression.args["expressions"].remove(e)
-
-                # Make sure new columns (`pos` and `col`) are unique:
-                # Add a numeric postfix if they are taken, using a SQLGlot helper
-                taken = expression.named_selects
-                unnested_column_name = find_new_name(taken, "col")
-                position_column_name = find_new_name(taken, "pos")
-
-                # If the SELECT has a FROM, do a CROSS JOIN with the UNNEST,
-                # otherwise, just do SELECT ... FROM UNNEST
-                unnest = exp.Unnest(
-                    expressions=[explode_expression],
-                    alias=f"array_column({unnested_column_name}, {position_column_name})",
-                    ordinality=True,
-                )
-                if expression.args.get("from") is not None:
-                    join = exp.Join(this=unnest, kind="CROSS")
-                    expression = expression.select(position_column_name, unnested_column_name).join(join)
-                else:
-                    expression = expression.select(position_column_name, unnested_column_name).from_(unnest)
-                continue
-
-            elif isinstance(e, exp.Explode):
-                unnested_column_name = "col"
-                explode_expression = e.args["this"]
-
-            elif isinstance(e, exp.Alias):
-                if not isinstance(e.args["this"], exp.Explode):
-                    continue
-                unnested_column_name = e.alias
-                explode_expression = e.args["this"].args["this"]
-
-            # This is not a (pos)explode expression
-            else:
-                continue
-
-            # Remove the `explode()` expression from the select
-            expression.args["expressions"].remove(e)
-
-            # Make sure new column (`col`) is unique:
-            # Add a numeric postfix if it's taken, using a SQLGlot helper
-            taken = expression.named_selects
-            unnested_column_name = find_new_name(taken, unnested_column_name)
-
-            # If the SELECT has a FROM, do a CROSS JOIN with the UNNEST,
-            # otherwise, just do SELECT ... FROM UNNEST
-            unnest = exp.Unnest(expressions=[explode_expression], alias=f"array_column({unnested_column_name})")
-            if expression.args.get("from") is not None:
-                join = exp.Join(this=unnest, kind="CROSS")
-                expression = expression.select(unnested_column_name).join(join)
-            else:
-                expression = expression.select(unnested_column_name).from_(unnest)
-    return expression
-
-
 def replace_0x_strings_with_hex_strings(expression: exp.Expression):
     """Recursively replace string literals starting with '0x' with the equivalent HexString"""
     return expression.transform(
@@ -184,12 +121,16 @@ class DuneSQL(Trino):
     class Generator(Trino.Generator):
         """AST -> SQL"""
 
+        TYPE_MAPPING = Trino.Generator.TYPE_MAPPING | {
+            exp.DataType.Type.UBIGINT: "UINT256",
+            exp.DataType.Type.BIGINT: "INT256",
+        }
         TRANSFORMS = Trino.Generator.TRANSFORMS | {
-            # Output hex strings as 0xdeadbeef
             exp.HexString: lambda self, e: hex(int(e.this)),
             exp.Select: transforms.preprocess(
                 [
-                    explode_to_unnest,
+                    transforms.eliminate_qualify,
+                    transforms.explode_to_unnest,
                     replace_0x_strings_with_hex_strings,
                     remove_lower_around_hex_strings,
                     rename_bytea2numeric_to_bytearray_to_bigint,
@@ -199,9 +140,4 @@ class DuneSQL(Trino):
                     pipe_of_hex_strings_to_bytearray_concat,
                 ]
             ),
-        }
-
-        TYPE_MAPPING = Trino.Generator.TYPE_MAPPING | {
-            exp.DataType.Type.UBIGINT: "UINT256",
-            exp.DataType.Type.BIGINT: "INT256",
         }
