@@ -1,1 +1,1 @@
-SELECT * FROM erc20."ERC20_evt_Transfer", erc20.ERC20_evt_Transfer x
+SELECT * FROM erc20."ERC20_evt_Transfer", erc20.ERC20_evt_Transfer x, aave."AaveCollateralVaultProxy_evt_DeployVault"
