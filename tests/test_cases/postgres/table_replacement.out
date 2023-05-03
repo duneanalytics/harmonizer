@@ -2,4 +2,4 @@
 
 SELECT
   *
-FROM erc20_optimism.evt_Transfer, erc20_optimism.evt_Transfer AS x, aave_optimism.AaveCollateralVaultProxy_evt_DeployVault
+FROM erc20_optimism.evt_Transfer, erc721_ethereum.evt_Transfer AS x, aave_optimism.AaveCollateralVaultProxy_evt_DeployVault
