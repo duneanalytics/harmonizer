@@ -1,1 +1,1 @@
-select array_col[(1 - 1) + (1 - 1)]
+select array_col[0 + 0]
