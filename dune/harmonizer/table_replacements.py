@@ -1,4 +1,6 @@
 import sqlglot
+from sqlglot import to_identifier
+from sqlglot.expressions import TableAlias
 
 
 def postgres_table_replacements(dataset):
@@ -25,16 +27,20 @@ def postgres_table_replacements(dataset):
         replacement = spellbook_mapping.get(table)
         if replacement is not None:
             to_db, to_table = replacement
-            if table_node.alias != "":
-                return sqlglot.parse_one(f"{to_db}.{to_table} as {table_node.alias}", read="trino")
-            return sqlglot.parse_one(f"{to_db}.{to_table}", read="trino")
+            return sqlglot.exp.Table(
+                this=to_identifier(to_table),
+                db=to_identifier(to_db),
+                alias=TableAlias(this=to_identifier(table_node.alias)) if table_node.alias else None,
+            )
 
         # if decoded table, add _{dataset} to the table name
         if any(decoded in table_node.name.lower() for decoded in ("_evt_", "_call_")):
             to_db, to_table = f"{table_node.db}_{dataset}", table_node.name
-            if table_node.alias != "":
-                return sqlglot.parse_one(f"{to_db}.{to_table} as {table_node.alias}", read="trino")
-            return sqlglot.parse_one(f"{to_db}.{to_table}", read="trino")
+            return sqlglot.exp.Table(
+                this=to_identifier(to_table),
+                db=to_identifier(to_db),
+                alias=TableAlias(this=to_identifier(table_node.alias)) if table_node.alias else None,
+            )
 
         return table_node
 
