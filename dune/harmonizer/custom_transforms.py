@@ -118,7 +118,7 @@ def chain_where_blockchain(node, blockchain):
     # add a blockchain = 'ethereum' to the WHERE statement for trades, tokens, and prices tables.
     required_tables = [
         "nft.trades",
-        "dex.in.trades",
+        "dex.trades",
         "tokens.erc20",
         "tokens.nft",
         "prices.usd",
@@ -143,7 +143,7 @@ def dex_trades_fixes(node):
     """Fixes to dex.trades"""
     # doesn't matter if subquery or not, it will replace the found filter.
     if node.key == "select":
-        if "dex.in.trades" in node.sql(dialect="trino").replace('"', ""):
+        if "dex.trades" in node.sql(dialect="trino").replace('"', ""):
             # change exchange_contract_address to project_contract_address
             final_where = node.sql(dialect="trino").replace("exchange_contract_address", "project_contract_address")
 
