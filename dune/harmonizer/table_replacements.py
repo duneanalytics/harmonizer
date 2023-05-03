@@ -29,13 +29,12 @@ def postgres_table_replacements(dataset):
                 return sqlglot.parse_one(f"{to_db}.{to_table} as {table_node.alias}", read="trino")
             return sqlglot.parse_one(f"{to_db}.{to_table}", read="trino")
 
-        # if decoded table, then add _{dataset} to the table name
-        if any(decoded in table_node.name.lower() for decoded in ["_evt_", "_call_"]):
-            chain_added_table = table_node.sql(dialect="trino").split(".")[0] + "_" + dataset + "." + table_node.name
-            # if an alias is used, add it back
-            if table_node.unalias().alias is not None:
-                chain_added_table = chain_added_table + " as " + table_node.unalias().alias
-            return sqlglot.parse_one(chain_added_table, read="trino")
+        # if decoded table, add _{dataset} to the table name
+        if any(decoded in table_node.name.lower() for decoded in ("_evt_", "_call_")):
+            to_db, to_table = f"{table_node.db}_{dataset}", table_node.name
+            if table_node.alias != "":
+                return sqlglot.parse_one(f"{to_db}.{to_table} as {table_node.alias}", read="trino")
+            return sqlglot.parse_one(f"{to_db}.{to_table}", read="trino")
 
         return table_node
 
