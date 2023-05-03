@@ -2,7 +2,6 @@ import re
 
 from sqlglot import TokenType, exp, transforms
 from sqlglot.dialects.trino import Trino
-from sqlglot.helper import find_new_name
 
 
 def replace_0x_strings_with_hex_strings(expression: exp.Expression):
