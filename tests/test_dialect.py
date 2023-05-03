@@ -181,3 +181,36 @@ def test_concat_of_0x_strings():
         "SELECT BYTEARRAY_CONCAT(BYTEARRAY_CONCAT(0x10, 0x20), 0x30)"
         == sqlglot.transpile("SELECT '0x10' || '0x20' || '0x30'", read="spark", write=DuneSQL)[0]
     )
+
+
+def test_hex_strings_with_leading_zeros():
+    assert "SELECT 0x0010" == sqlglot.transpile("SELECT 0x0010", read=DuneSQL)[0]
+
+
+def test_postgres_hex_literals():
+    assert "SELECT 0x10" == sqlglot.transpile(r"SELECT '\x10'", read="postgres", write=DuneSQL)[0]
+
+
+def test_postgres_median():
+    assert (
+        "select col, approx_percentile(col, 0.5) group by 1 order by col"
+        == sqlglot.transpile(
+            "select col, percentile_cont(0.5) within group (order by col) group by 1", read="postgres", write=DuneSQL
+        )[0]
+    )
+
+
+def test_cross_join_sequence():
+    assert (
+        "select c, col from x cross join unnest(sequence(a, b, c)) as _u(col)"
+        == sqlglot.transpile("select col from x cross join generate_series(a, b, c)", read="postgres", write="trino")[0]
+    )
+
+
+def test_aliases():
+    assert (
+        "with x as (select 1 as a) select cast(a as double) as a from x"
+        == sqlglot.transpile("with x as (select 1 as a) select cast(a as double) from x", read="spark", write="trino")[
+            0
+        ]
+    )
