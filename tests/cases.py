@@ -42,6 +42,7 @@ spark_test_cases = [
     SparkTestCase("test_cases/spark/explode.in", "test_cases/spark/explode.out"),
     SparkTestCase("test_cases/spark/bytea2numeric_0x.in", "test_cases/spark/bytea2numeric_0x.out"),
     SparkTestCase("test_cases/spark/array_index.in", "test_cases/spark/array_index.out"),
+    SparkTestCase("test_cases/spark/0x_strings_leading_0.in", "test_cases/spark/0x_strings_leading_0.out"),
 ]
 
 
