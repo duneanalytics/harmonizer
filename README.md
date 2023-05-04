@@ -1,18 +1,20 @@
 # Harmonizer
 
-Harmonizer is a library we have developed at Dune to translate Dune queries from PostgreSQL and Spark SQL to DuneSQL.
-We currently use this library in our migration service in the app.
+Harmonizer is a library for translating Dune queries from PostgreSQL and Spark SQL to DuneSQL.
+It currently powers our in-app migration service.
 
-A query is translated through three steps:
+<img width="456" alt="Screenshot 2023-05-04 at 11 53 01" src="https://user-images.githubusercontent.com/5699893/236171827-577c28dd-c10c-423b-b6b0-58dca14d5497.png">
 
-1. We use [SQLGlot](https://github.com/tobymao/sqlglot) to transpile the query. 
-This is an excellent tool for working with SQL queries. We use it to parse the query into an Abstract Syntax Tree (AST),
-manipulating that tree, and then generating the SQL for that query in a different dialect.
-We translate from Spark SQL to DuneSQL, and from PostgreSQL to DuneSQL.
-2. We create a DuneSQL SQLGlot dialect, allowing us to do stuff like
-   - translating string literals '0x...' to 0x... in DuneSQL, since we [support native hex literals](https://dune.com/docs/query/DuneSQL-reference/datatypes/#varbinary).
-3. We pass the query through custom rules to make additional changes to the query. Examples of such rules are
-   - mapping known changes in table names from the legacy Postgres datasets to corresponding table names in DuneSQL
+Harmonizer makes heavy use of [SQLGlot](https://github.com/tobymao/sqlglot),
+an excellent tool for working with SQL queries.
+With it, we parse the query into an Abstract Syntax Tree (AST),
+and can manipulate the AST, and  finally generate the SQL for that query, even in a different dialect.
+
+We add a DuneSQL dialect, and use SQLGlot to translate from Spark SQL/PostgreSQL to DuneSQL.
+In the DuneSQL dialect, we translate string literals '0x...' to 0x..., since we [support native hex literals](https://dune.com/docs/query/DuneSQL-reference/datatypes/#varbinary).
+
+Harmonizer also does a mapping of known changes in table names from the legacy Postgres datasets to corresponding table names in DuneSQL.
+We need help to make this mapping more complete!
 
 ## Getting started
 
