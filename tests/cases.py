@@ -19,6 +19,9 @@ postgres_test_cases = [
     PostgresTestCase(
         "test_cases/postgres/table_replacement.in", "test_cases/postgres/table_replacement.out", "optimism"
     ),
+    PostgresTestCase(
+        "test_cases/postgres/0x_strings_leading_0.in", "test_cases/postgres/0x_strings_leading_0.out", "ethereum"
+    ),
 ]
 
 
