@@ -374,6 +374,6 @@ def preserve_leading_zeros_in_hex_strings(original_query, query):
         n = counts[replacement]
         to_replace = f"0x{replacement[2:-1].lstrip('0')}{replacement[-1]}"
         replacement_with_marker = f"0x{marker}{replacement[2:]}"
-        query = re.sub(to_replace, replacement_with_marker, query, count=n)
+        query = re.sub(to_replace, replacement_with_marker, query, count=n, flags=re.IGNORECASE)
     query = query.replace("0x" + marker, "0x")
     return query
