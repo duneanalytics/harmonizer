@@ -9,4 +9,4 @@ FROM UNNEST(SEQUENCE(
     CAST(SUBSTR(CAST(CAST('{{2 - End Date}}' AS TIMESTAMP) AS VARCHAR), 1, 10) AS DATE)
   ),
   INTERVAL '1' {{3 - Time Granularity}}
-) /* WARNING: Check out the docs for example of time series generation: https://dune.com/docs/query/syntax-differences/ */) AS _u(time)
+)) AS _u(time)

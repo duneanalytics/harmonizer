@@ -1,0 +1,1 @@
+select x, dt from x cross join generate_series(min_dt, current_date, '1 day'::interval) dt

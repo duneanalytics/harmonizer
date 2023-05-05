@@ -1,8 +1,7 @@
 /* Success! If you're still running into issues, check out https://dune.com/docs/query/syntax-differences/ or reach out in the #dune-sql Discord channel. */
 
 SELECT
-  0xdeadbeef,
-  0x0010,
-  0x00deadbeef,
-  0x0000deadbeef,
-  0x0000000000000000000000000000000000000000
+  x,
+  dt
+FROM x
+CROSS JOIN UNNEST(SEQUENCE(min_dt, CURRENT_DATE, TRY_CAST('1 day' AS INTERVAL))) AS dt
