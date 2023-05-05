@@ -22,6 +22,7 @@ postgres_test_cases = [
     PostgresTestCase(
         "test_cases/postgres/0x_strings_leading_0.in", "test_cases/postgres/0x_strings_leading_0.out", "ethereum"
     ),
+    PostgresTestCase("test_cases/postgres/cross_join.in", "test_cases/postgres/cross_join.out", "ethereum"),
 ]
 
 
