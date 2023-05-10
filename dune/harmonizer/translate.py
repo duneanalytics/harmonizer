@@ -11,7 +11,6 @@ from dune.harmonizer.custom_transforms import (
     fix_bytearray_param,
     parameter_placeholder,
     postgres_transforms,
-    preserve_leading_zeros_in_hex_strings,
     spark_transforms,
     v1_tables_to_v2_tables,
 )
@@ -69,10 +68,6 @@ def _translate_query(query, sqlglot_dialect, dataset=None, syntax_only=False):
 
         # Non-SQLGlot transforms
         query = fix_bytearray_param(query)
-
-        # TODO: Remove once SQLGlot fixes this, see https://github.com/duneanalytics/harmonizer/issues/41
-        # Work around SQLGlot bug which removes leading zeros from hex strings
-        query = preserve_leading_zeros_in_hex_strings(original_query, query)
 
         return add_warnings_and_banner(query)
 

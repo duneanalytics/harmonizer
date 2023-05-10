@@ -1,5 +1,4 @@
 import re
-from collections import Counter
 from functools import partial
 
 import sqlglot
@@ -353,27 +352,3 @@ def parameter_placeholder(p):
         .replace("-", "_")
         .lower()
     )
-
-
-def preserve_leading_zeros_in_hex_strings(original_query, query):
-    """Work around SQLGlot bug where it removes leading zeros from hex strings
-
-    We find all the hex strings in the original query and their counts.
-    We find the corresponding hex string in the new query (which now potentially has leading zeros removed),
-    and replace it with the original hex string. We add a marker inside so we don't replace the same string twice.
-    Consider first replacing "0xdeadbeef" with "0xdeadbeef" (i.e. a no-op),
-    then replacing (a different) "0xdeadbeef" with "0x00deadbeef". Since the string to replace is the same, we would
-    erroneously remove the first one.
-
-    We remove all markers at the end.
-    """
-    original_hex_strings = re.findall("0x[0-9a-fA-F]+", original_query)
-    counts = Counter(original_hex_strings)
-    marker = "<<<<<<<"  # this marker helps avoid replacing the same string twice
-    for replacement in original_hex_strings:
-        n = counts[replacement]
-        to_replace = f"0x{replacement[2:-1].lstrip('0')}{replacement[-1]}"
-        replacement_with_marker = f"0x{marker}{replacement[2:]}"
-        query = re.sub(to_replace, replacement_with_marker, query, count=n, flags=re.IGNORECASE)
-    query = query.replace("0x" + marker, "0x")
-    return query
