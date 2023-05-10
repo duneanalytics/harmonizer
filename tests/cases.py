@@ -23,6 +23,7 @@ postgres_test_cases = [
         "test_cases/postgres/0x_strings_leading_0.in", "test_cases/postgres/0x_strings_leading_0.out", "ethereum"
     ),
     PostgresTestCase("test_cases/postgres/cross_join.in", "test_cases/postgres/cross_join.out", "ethereum"),
+    PostgresTestCase("test_cases/postgres/median.in", "test_cases/postgres/median.out", "ethereum"),
 ]
 
 
