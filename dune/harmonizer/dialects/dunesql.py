@@ -7,7 +7,7 @@ from sqlglot.dialects.trino import Trino
 def replace_0x_strings_with_hex_strings(expression: exp.Expression):
     """Recursively replace string literals starting with '0x' with the equivalent HexString"""
     return expression.transform(
-        lambda e: exp.HexString(this=int(e.this, 16))
+        lambda e: exp.HexString(this=e.args["this"][2:])
         if isinstance(e, exp.Literal) and e.args["is_string"] and e.args["this"].startswith("0x")
         else e
     )
@@ -125,7 +125,7 @@ class DuneSQL(Trino):
             exp.DataType.Type.BIGINT: "INT256",
         }
         TRANSFORMS = Trino.Generator.TRANSFORMS | {
-            exp.HexString: lambda self, e: hex(int(e.this)),
+            exp.HexString: lambda self, e: f"0x{e.this}",
             exp.Select: transforms.preprocess(
                 [
                     transforms.eliminate_qualify,
