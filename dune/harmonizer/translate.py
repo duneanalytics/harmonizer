@@ -35,11 +35,6 @@ def _translate_query(query, sqlglot_dialect, dataset=None, syntax_only=False):
         for replace, original in parameter_map.items():
             query = query.replace(original, replace)
 
-        original_query = query
-        if sqlglot_dialect == "postgres":
-            # Update bytearray syntax
-            original_query = original_query.replace("\\x", "0x")
-
         # Transpile to Trino
         query = sqlglot.transpile(query, read=sqlglot_dialect, write="trino", pretty=True)[0]
 
