@@ -1,0 +1,1 @@
+select tx_index, percentile_cont(0.5) within group (order by tx_index) from ethereum.traces where block_number < 100000 group by 1
