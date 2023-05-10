@@ -1,4 +1,6 @@
 import sqlglot
+from sqlglot.optimizer.annotate_types import annotate_types
+from sqlglot.optimizer.canonicalize import canonicalize
 
 from dune.harmonizer.dialects.dunesql import DuneSQL, _looks_like_timestamp
 
@@ -181,3 +183,15 @@ def test_concat_of_0x_strings():
         "SELECT BYTEARRAY_CONCAT(BYTEARRAY_CONCAT(0x10, 0x20), 0x30)"
         == sqlglot.transpile("SELECT '0x10' || '0x20' || '0x30'", read="spark", write=DuneSQL)[0]
     )
+
+
+def test_annotations():
+    schema = {"y": {"cola": "SMALLINT"}}
+    sql = "SELECT CAST(x.cola AS SMALLINT) + 2.5 AS cola FROM (SELECT y.cola AS cola FROM y AS y) AS x"
+    annotated_expr = annotate_types(sqlglot.parse_one(sql), schema=schema)
+    print()
+    print(annotated_expr.expressions[0].type.this)
+    canon = canonicalize(annotated_expr)
+    print(sql)
+    print(annotated_expr.sql())
+    print(canon.sql())
