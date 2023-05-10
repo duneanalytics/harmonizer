@@ -15,6 +15,7 @@ def test_generate_hexstring():
     assert "SELECT 0xdeadbeef" == sqlglot.transpile("SELECT x'deadbeef'", read="postgres", write=DuneSQL)[0]
     assert "SELECT 0xdeadbeef" == sqlglot.transpile("SELECT X'deadbeef'", read=DuneSQL, write=DuneSQL)[0]
     assert "SELECT 0xdeadbeef" == sqlglot.transpile("SELECT 0xdeadbeef", read=DuneSQL, write=DuneSQL)[0]
+    assert "SELECT 0x0010" == sqlglot.transpile("SELECT 0x0010", read=DuneSQL)[0]
 
 
 def test_force_string_with_0x_to_hexstring():
