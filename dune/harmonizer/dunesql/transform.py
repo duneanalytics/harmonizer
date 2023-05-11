@@ -1,7 +1,6 @@
 import re
 
-from sqlglot import TokenType, exp, transforms
-from sqlglot.dialects.trino import Trino
+from sqlglot import exp
 
 
 def replace_0x_strings_with_hex_strings(expression: exp.Expression):
@@ -96,47 +95,3 @@ def pipe_expression_to_bytearray_concat_call(e: exp.Expression):
 def pipe_of_hex_strings_to_bytearray_concat(expression: exp.Expression):
     """Replace all || with bytearray_concat function call if arguments are hex strings"""
     return expression.transform(pipe_expression_to_bytearray_concat_call)
-
-
-class DuneSQL(Trino):
-    """The DuneSQL dialect is the dialect used to execute SQL queries on Dune's crypto data sets
-
-    DuneSQL is the Trino dialect with slight modifications."""
-
-    class Tokenizer(Trino.Tokenizer):
-        """Text -> Tokens"""
-
-        HEX_STRINGS = ["0x", ("X'", "'")]
-        KEYWORDS = Trino.Tokenizer.KEYWORDS | {
-            "UINT256": TokenType.UBIGINT,
-            "INT256": TokenType.BIGINT,
-        }
-
-    class Parser(Trino.Parser):
-        """Tokens -> AST"""
-
-        TYPE_TOKENS = Trino.Parser.TYPE_TOKENS | {TokenType.UBIGINT, TokenType.BIGINT}
-
-    class Generator(Trino.Generator):
-        """AST -> SQL"""
-
-        TYPE_MAPPING = Trino.Generator.TYPE_MAPPING | {
-            exp.DataType.Type.UBIGINT: "UINT256",
-            exp.DataType.Type.BIGINT: "INT256",
-        }
-        TRANSFORMS = Trino.Generator.TRANSFORMS | {
-            exp.HexString: lambda self, e: f"0x{e.this}",
-            exp.Select: transforms.preprocess(
-                [
-                    transforms.eliminate_qualify,
-                    transforms.explode_to_unnest,
-                    replace_0x_strings_with_hex_strings,
-                    remove_lower_around_hex_strings,
-                    rename_bytea2numeric_to_bytearray_to_bigint,
-                    cast_boolean_strings,
-                    cast_date_strings,
-                    concat_of_hex_string_to_bytearray_concat,
-                    pipe_of_hex_strings_to_bytearray_concat,
-                ]
-            ),
-        }

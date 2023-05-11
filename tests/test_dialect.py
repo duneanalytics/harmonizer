@@ -1,8 +1,8 @@
 import sqlglot
-from sqlglot.optimizer.annotate_types import annotate_types
-from sqlglot.optimizer.canonicalize import canonicalize
 
-from dune.harmonizer.dialects.dunesql import DuneSQL, _looks_like_timestamp
+from dune.harmonizer.dunesql import DuneSQL
+from dune.harmonizer.dunesql.optimize import optimize
+from dune.harmonizer.dunesql.transform import _looks_like_timestamp
 
 
 def test_parse_hexstring():
@@ -186,13 +186,7 @@ def test_concat_of_0x_strings():
     )
 
 
-def test_annotations():
-    schema = {"y": {"cola": "SMALLINT"}}
-    sql = "SELECT CAST(x.cola AS SMALLINT) + 2.5 AS cola FROM (SELECT y.cola AS cola FROM y AS y) AS x"
-    annotated_expr = annotate_types(sqlglot.parse_one(sql), schema=schema)
-    print()
-    print(annotated_expr.expressions[0].type.this)
-    canon = canonicalize(annotated_expr)
-    print(sql)
-    print(annotated_expr.sql())
-    print(canon.sql())
+def test_with_schema():
+    dune_sql_expr = sqlglot.parse_one("SELECT col = 1 FROM tbl", read=DuneSQL)
+    optimized = optimize(dune_sql_expr, schema={"tbl": {"col": "double"}})
+    assert "SELECT tbl.col = CAST(1 AS DOUBLE) AS _col_0 FROM tbl" == optimized.sql(DuneSQL)

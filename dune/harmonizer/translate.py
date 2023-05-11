@@ -2,7 +2,11 @@ import re
 
 import sqlglot
 from sqlglot import ParseError
+from sqlglot.optimizer import optimizer
 from sqlglot.optimizer.annotate_types import annotate_types
+from sqlglot.optimizer.canonicalize import canonicalize
+from sqlglot.optimizer.qualify_columns import qualify_columns
+from sqlglot.optimizer.simplify import simplify
 
 from dune.harmonizer.custom_transforms import (
     add_warnings_and_banner,
@@ -14,7 +18,7 @@ from dune.harmonizer.custom_transforms import (
     spark_transforms,
     v1_tables_to_v2_tables,
 )
-from dune.harmonizer.dialects.dunesql import DuneSQL
+from dune.harmonizer.dunesql.dunesql import DuneSQL
 from dune.harmonizer.errors import DuneTranslationError
 
 
