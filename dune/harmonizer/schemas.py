@@ -19,6 +19,6 @@ def schema_from_sqlite(path, schema_table_name):
 
     schema = defaultdict(dict)
     for table_name, columns in groupby(rows, key=lambda t: t[0]):  # group by table name
-        for _, name, type_ in columns:
-            schema[table_name][name] = type_
+        for _, column_name, column_type in columns:
+            schema[table_name][column_name] = column_type
     return schema
