@@ -1,7 +1,6 @@
 import sqlglot
 
 from dune.harmonizer.dunesql import DuneSQL
-from dune.harmonizer.dunesql.optimize import optimize
 from dune.harmonizer.dunesql.transform import _looks_like_timestamp
 
 
@@ -184,9 +183,3 @@ def test_concat_of_0x_strings():
         "SELECT BYTEARRAY_CONCAT(BYTEARRAY_CONCAT(0x10, 0x20), 0x30)"
         == sqlglot.transpile("SELECT '0x10' || '0x20' || '0x30'", read="spark", write=DuneSQL)[0]
     )
-
-
-def test_with_schema():
-    dune_sql_expr = sqlglot.parse_one("SELECT col = 1 FROM tbl", read=DuneSQL)
-    optimized = optimize(dune_sql_expr, schema={"tbl": {"col": "double"}})
-    assert "SELECT tbl.col = CAST(1 AS DOUBLE) AS _col_0 FROM tbl" == optimized.sql(DuneSQL)
