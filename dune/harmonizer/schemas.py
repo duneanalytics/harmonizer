@@ -17,8 +17,8 @@ def schema_from_sqlite(path, schema_table_name):
             f"select table_name, column_name, sqlglot_type from {schema_table_name} order by table_name, column_name"
         ).fetchall()
 
-    trino_schema = defaultdict(dict)
-    for schema_table_name, columns in groupby(rows, key=lambda t: t[0]):  # group by table name
+    schema = defaultdict(dict)
+    for table_name, columns in groupby(rows, key=lambda t: t[0]):  # group by table name
         for _, name, type_ in columns:
-            trino_schema[schema_table_name][name] = type_
-    return trino_schema
+            schema[table_name][name] = type_
+    return schema
