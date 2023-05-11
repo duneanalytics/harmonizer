@@ -29,7 +29,7 @@ class DuneSQL(Trino):
     class Parser(Trino.Parser):
         """Tokens -> AST"""
 
-        TYPE_TOKENS = Trino.Parser.TYPE_TOKENS
+        pass
 
     class Generator(Trino.Generator):
         """AST -> SQL"""
