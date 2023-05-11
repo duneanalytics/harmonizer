@@ -36,7 +36,7 @@ def _cast_types_in_equals(expression, coerces_to):
             cast = exp.Cast(this=expression.left, to=exp.DataType.build(right_type))
             return expression.replace(exp.EQ(this=cast, expression=expression.right))
         # downcast right to left type
-        elif left_type in right_coerces_to:
+        if left_type in right_coerces_to:
             cast = exp.Cast(this=expression.right, to=exp.DataType.build(left_type))
             return expression.replace(exp.EQ(this=expression.left, expression=cast))
     return expression
