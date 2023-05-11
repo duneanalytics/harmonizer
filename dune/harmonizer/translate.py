@@ -2,11 +2,6 @@ import re
 
 import sqlglot
 from sqlglot import ParseError
-from sqlglot.optimizer import optimizer
-from sqlglot.optimizer.annotate_types import annotate_types
-from sqlglot.optimizer.canonicalize import canonicalize
-from sqlglot.optimizer.qualify_columns import qualify_columns
-from sqlglot.optimizer.simplify import simplify
 
 from dune.harmonizer.custom_transforms import (
     add_warnings_and_banner,
@@ -41,10 +36,7 @@ def _translate_query(query, sqlglot_dialect, dataset=None, syntax_only=False):
             query = query.replace(original, replace)
 
         # Transpile to Trino
-        # query = sqlglot.transpile(query, read=sqlglot_dialect, write="trino")[0]
-        query_tree = sqlglot.parse_one(query, read=sqlglot_dialect)
-        annotated_query_tree = annotate_types(query_tree)
-        query = annotated_query_tree.sql(dialect="trino")
+        query = sqlglot.transpile(query, read=sqlglot_dialect, write="trino", pretty=True)[0]
 
         # Perform custom transformations using SQLGlot's parsed representation
         if sqlglot_dialect == "spark":

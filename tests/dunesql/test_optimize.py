@@ -1,6 +1,6 @@
 import sqlglot
 
-from dune.harmonizer.dunesql import DuneSQL
+from dune.harmonizer.dunesql.dunesql import DuneSQL
 from dune.harmonizer.dunesql.optimize import optimize
 
 
