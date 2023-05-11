@@ -9,6 +9,8 @@ def schema_from_sqlite(path, schema_table_name):
 
     Assumes path is a SQLite database with a table `table_name`, with columns `table_name`, `column_name`
     and `sqlglot_type`, where `sqlglot_type` is one of the SQLGlot DataType.Type enum values.
+
+    We don't check the values in the `sqlglot_type` column against SQLGlot, these are assumed to be valid.
     """
     with closing(sqlite3.connect(path).cursor()) as cursor:
         rows = cursor.execute(
