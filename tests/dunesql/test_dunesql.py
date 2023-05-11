@@ -36,8 +36,7 @@ def test_remove_lower_around_hexstring():
 
 
 def test_custom_types():
-    sqlglot.parse_one("SELECT CAST(1 AS INT256)", read=DuneSQL)
-    sqlglot.parse_one("SELECT CAST(1 AS UINT256)", read=DuneSQL)
+    assert "SELECT CAST(1 AS INT256)" == sqlglot.transpile("SELECT CAST(1 AS INT256)", read=DuneSQL, write=DuneSQL)[0]
     assert "SELECT CAST(1 AS UINT256)" == sqlglot.transpile("SELECT CAST(1 AS UINT256)", read=DuneSQL, write=DuneSQL)[0]
 
 
