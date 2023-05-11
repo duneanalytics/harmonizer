@@ -13,7 +13,7 @@ from dune.harmonizer.custom_transforms import (
     spark_transforms,
     v1_tables_to_v2_tables,
 )
-from dune.harmonizer.dialects.dunesql import DuneSQL
+from dune.harmonizer.dunesql.dunesql import DuneSQL
 from dune.harmonizer.errors import DuneTranslationError
 
 
