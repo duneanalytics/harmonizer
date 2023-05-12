@@ -1,1 +1,1 @@
-select cast(x as int), y::text, cast(c + 1 as int), 1 + cast(d as int) from t
+select cast(x as int), y::text, cast(c + 1 as int), 1 + cast(d as int), cast(z as text) as foo from t
