@@ -1,0 +1,1 @@
+select cast(x as int), y::text, cast(c + 1 as int) from t
