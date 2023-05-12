@@ -272,6 +272,15 @@ def chain_where(dataset):
     }[dataset]
 
 
+def explicit_alias_on_cast(query_tree):
+    """In Postgres, a simple cast of a column will retain the column name, so we add an explicit cast"""
+    return query_tree.transform(
+        lambda e: sqlglot.exp.Alias(this=e, alias=e.alias_or_name)
+        if isinstance(e, sqlglot.exp.Cast) and isinstance(e.this, sqlglot.exp.Column)
+        else e
+    )
+
+
 def postgres_transforms(query):
     """Apply a series of transforms to the query tree, recursively using SQLGlot's recursive transform function.
 
@@ -282,6 +291,7 @@ def postgres_transforms(query):
         cast_timestamp_parameters,
         warn_sequence,
         bytearray_parameter_fix,
+        explicit_alias_on_cast,
     )
     for f in transforms:
         query_tree = query_tree.transform(f)
