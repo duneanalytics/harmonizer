@@ -10,8 +10,11 @@ def optimize(expr, schema):
     Involves fully qualifying all table and column names.
     Current rules supported are
     - casting types in equals"""
-    annotators = TypeAnnotator.ANNOTATORS
+    annotators = TypeAnnotator.ANNOTATORS | {
+        exp.HexString: lambda self, expr: self._annotate_with_type(expr, exp.DataType.Type.VARBINARY),
+    }
     coerces_to = TypeAnnotator.COERCES_TO
+
     annotated_expr = optimizer.annotate_types(
         expression=optimizer.qualify_columns(
             expression=expr,
@@ -31,6 +34,23 @@ def _cast_types_in_equals(expression, coerces_to):
     if isinstance(expression, exp.EQ):
         left_type, right_type = expression.left.type.this, expression.right.type.this
         left_coerces_to, right_coerces_to = coerces_to.get(left_type, set()), coerces_to.get(right_type, set())
+
+        # varbinary == varchar // varchar == varbinary
+        print(repr(expression.left))
+        print(repr(expression.right))
+        if (left_type == exp.DataType.Type.VARBINARY and right_type == exp.DataType.Type.VARCHAR) or (
+            left_type == exp.DataType.Type.VARCHAR and right_type == exp.DataType.Type.VARBINARY
+        ):
+            if isinstance(expression.right, exp.HexString):
+                cast = exp.Cast(this=expression.right, to=exp.DataType.build("varchar"))
+                return expression.replace(exp.EQ(this=expression.left, expression=cast))
+            if isinstance(expression.left, exp.HexString):
+                cast = exp.Cast(this=expression.left, to=exp.DataType.build("varbinary"))
+                return expression.replace(exp.EQ(this=cast, expression=expression.right))
+            if isinstance(expression.right, exp.Literal):
+                cast = exp.Unhex(this=expression.right)
+                return expression.replace(exp.EQ(this=expression.left, expression=cast))
+
         # downcast left to right type
         if right_type in left_coerces_to:
             cast = exp.Cast(this=expression.left, to=exp.DataType.build(right_type))

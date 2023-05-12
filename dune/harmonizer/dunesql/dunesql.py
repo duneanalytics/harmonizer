@@ -46,7 +46,7 @@ class DuneSQL(Trino):
                     transforms.eliminate_qualify,
                     transforms.explode_to_unnest,
                     # Custom transforms
-                    replace_0x_strings_with_hex_strings,
+                    # replace_0x_strings_with_hex_strings,
                     remove_lower_around_hex_strings,
                     rename_bytea2numeric_to_bytearray_to_bigint,
                     cast_boolean_strings,
