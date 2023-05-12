@@ -1,5 +1,7 @@
 # Harmonizer
 
+[![PyPI version](https://badge.fury.io/py/dune-harmonizer.svg)](https://badge.fury.io/py/dune-harmonizer)
+
 Harmonizer is a library for translating Dune queries from PostgreSQL and Spark SQL to DuneSQL.
 It currently powers our in-app migration service.
 
