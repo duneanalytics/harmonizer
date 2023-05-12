@@ -2,7 +2,7 @@
 
 SELECT
   project AS "Project",
-  SUM(CAST(amount_usd AS DOUBLE) AS amount_usd) AS usd_volume
+  SUM(CAST(amount_usd AS DOUBLE)) AS usd_volume
 FROM (
   SELECT
     *

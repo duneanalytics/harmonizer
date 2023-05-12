@@ -276,7 +276,9 @@ def explicit_alias_on_cast(query_tree):
     """In Postgres, a simple cast of a column will retain the column name, so we add an explicit cast"""
     return query_tree.transform(
         lambda e: sqlglot.exp.Alias(this=e, alias=e.alias_or_name)
-        if isinstance(e, sqlglot.exp.Cast) and isinstance(e.this, sqlglot.exp.Column)
+        if isinstance(e, sqlglot.exp.Cast)
+        and isinstance(e.this, sqlglot.exp.Column)
+        and isinstance(e.parent, sqlglot.exp.Select)
         else e
     )
 
