@@ -35,7 +35,7 @@ def test_translate_with_mapping():
         syntax_only=False,
         table_mapping={
             "tbl": "new_tbl",
-            "aave.AaveCollateralVaultProxy_evt_DeployVault": "aave_ethereum.AaveCollateralVaultProxy_evt_DeployVault"
+            "aave.AaveCollateralVaultProxy_evt_DeployVault": "aave_ethereum.AaveCollateralVaultProxy_evt_DeployVault",
         },
     )
     assert canonicalize(expected_output) in canonicalize(output)
