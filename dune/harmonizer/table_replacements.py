@@ -24,7 +24,17 @@ def postgres_table_replacements(dataset):
             "prices.layer1_usd_eth": "prices.usd",
         }
 
-        table_node = replace_tables(table_node, mapping)
+        # Do a case insensitive lookup in the replacement mapping
+        table_node_case_insensitive = sqlglot.exp.Table(
+            this=to_identifier(table_node.name.lower()),
+            db=to_identifier(table_node.db.lower() if table_node.db else None),
+            alias=TableAlias(this=to_identifier(table_node.alias.lower())) if table_node.alias else None,
+        )
+        replaced_table_node = replace_tables(table_node_case_insensitive, mapping)
+
+        # Did replace
+        if replaced_table_node != table_node_case_insensitive:
+            return replaced_table_node
 
         # if decoded table, add _{dataset} to the table name
         if any(decoded in table_node.name.lower() for decoded in ("_evt_", "_call_")):
