@@ -25,7 +25,7 @@ def table_replacements(dataset, mapping):
         if replaced_table_node != table_node_case_insensitive:
             return replaced_table_node
 
-        # if decoded table, add _{dataset} to the table name
+        # If decoded table, add _{dataset} to the table name
         if any(decoded in table_node.name.lower() for decoded in ("_evt_", "_call_")):
             to_db, to_table = f"{table_node.db}_{dataset}", table_node.name
             return sqlglot.exp.Table(

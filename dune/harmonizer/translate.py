@@ -49,9 +49,11 @@ def _translate_query(query, sqlglot_dialect, dataset=None, syntax_only=False, ta
             query = query.replace("\\x", "0x")
             query_tree = postgres_transforms(query)
             if not syntax_only:
-                if table_mapping is None:
-                    table_mapping = spellbook_mapping(dataset)
-                query_tree = v1_tables_to_v2_tables(query_tree, dataset, table_mapping)
+                # Add provided table mapping to the default mapping
+                mapping = spellbook_mapping(dataset)
+                if table_mapping is not None:
+                    mapping = mapping | table_mapping
+                query_tree = v1_tables_to_v2_tables(query_tree, dataset, mapping)
 
         # Output the query as DuneSQL
         query = query_tree.sql(dialect=DuneSQL, pretty=True)
