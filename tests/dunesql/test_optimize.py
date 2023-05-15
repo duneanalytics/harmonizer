@@ -16,5 +16,5 @@ def test_optimize_cast_with_schema():
 def test_fail_with_qualified_columns():
     dune_sql_expr = sqlglot.parse_one("SELECT col FROM tbl", read=DuneSQL)
     optimized = optimize(dune_sql_expr, schema={"tbl": {"x": "int"}})
-    with pytest.raises(sqlglot.errors.OptimizeError, match="Unknown table: '' for column 'col'"):
+    with pytest.raises(sqlglot.errors.OptimizeError, match="Column 'col' could not be resolved"):
         validate_qualify_columns(optimized)

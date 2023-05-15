@@ -16,7 +16,6 @@ def optimize(expr, schema):
         expression=optimizer.qualify_columns(
             expression=expr,
             schema=schema,
-            expand_laterals=False,
         ),
         schema=schema,
         annotators=annotators,
