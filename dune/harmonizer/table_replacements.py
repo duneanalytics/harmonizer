@@ -13,7 +13,7 @@ def postgres_table_replacements(dataset):
         if not isinstance(table_node, sqlglot.exp.Table):
             return table_node
 
-        mapping = {
+        spellbook_mapping = {
             "erc20.erc20_evt_transfer": f"erc20_{dataset}.evt_Transfer",
             "bep20.bep20_evt_transfer": "erc20_bnb.evt_Transfer",
             "erc721.erc721_evt_transfer": "erc721_ethereum.evt_Transfer",
@@ -30,7 +30,7 @@ def postgres_table_replacements(dataset):
             db=to_identifier(table_node.db.lower() if table_node.db else None),
             alias=TableAlias(this=to_identifier(table_node.alias.lower())) if table_node.alias else None,
         )
-        replaced_table_node = replace_tables(table_node_case_insensitive, mapping)
+        replaced_table_node = replace_tables(table_node_case_insensitive, spellbook_mapping)
 
         # Did replace
         if replaced_table_node != table_node_case_insensitive:
