@@ -6,8 +6,8 @@ from sqlglot import exp
 def replace_0x_strings_with_hex_strings(expression: exp.Expression):
     """Recursively replace string literals starting with '0x' with the equivalent HexString"""
     return expression.transform(
-        lambda e: exp.HexString(this=e.args["this"][2:])
-        if isinstance(e, exp.Literal) and e.args["is_string"] and e.args["this"].startswith("0x")
+        lambda e: exp.HexString(this=e.this[2:])
+        if isinstance(e, exp.Literal) and e.is_string and e.this.startswith("0x")
         else e
     )
 
@@ -15,7 +15,7 @@ def replace_0x_strings_with_hex_strings(expression: exp.Expression):
 def remove_lower_around_hex_strings(expression: exp.Expression):
     """Remove the LOWER() function around hex strings"""
     return expression.transform(
-        lambda e: e.args["this"] if isinstance(e, exp.Lower) and isinstance(e.args["this"], exp.HexString) else e
+        lambda e: e.this if isinstance(e, exp.Lower) and isinstance(e.this, exp.HexString) else e
     )
 
 
@@ -35,7 +35,7 @@ def cast_boolean_strings(expression: exp.Expression):
     return expression.transform(
         lambda e: exp.Boolean(this=True if e.this.lower() == "true" else False)
         if isinstance(e, exp.Literal)
-        and e.args["is_string"]
+        and e.is_string
         and (e.this.lower() == "true" or e.this.lower() == "false")
         and (not isinstance(e.parent, exp.Cast))
         else e
@@ -58,7 +58,7 @@ def cast_date_strings(expression: exp.Expression):
     return expression.transform(
         lambda e: exp.Cast(this=e, to=exp.DataType.build("timestamp"))
         if isinstance(e, exp.Literal)
-        and e.args["is_string"]
+        and e.is_string
         and _looks_like_timestamp(e.this)
         and (not isinstance(e.parent, exp.Cast))
         else e
