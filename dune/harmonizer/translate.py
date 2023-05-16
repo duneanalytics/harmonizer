@@ -36,10 +36,13 @@ def _translate_query(query, sqlglot_dialect, dataset=None, syntax_only=False, ta
         for replace, original in parameter_map.items():
             query = query.replace(original, replace)
 
-        # Transpile to Trino
-        # Update bytearray syntax for postgres
+        # Update bytearray syntax for postgres:
+        # SQLGlot parses x'deadbeef' as a HexString, but it doesn't parse \x as a hex string,
+        # because it's just a general byte array notation. But we want to always parse it as a hex string.
         if sqlglot_dialect == "postgres":
             query = query.replace(r"'\x", "x'")
+
+        # Parse query using SQLGlot
         query_tree = sqlglot.parse_one(query, read=sqlglot_dialect)
 
         # Perform custom transformations using SQLGlot's parsed representation
