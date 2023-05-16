@@ -27,7 +27,7 @@ def test_translate_nlq(test_case):
 
 
 def test_translate_with_mapping():
-    query = "SELECT * FROM tbl, aave.AaveCollateralVaultProxy_evt_DeployVault"
+    query = "SELECT * FROM TBL, aave.AaveCollaTeRaLVaultProxy_evt_DeployVault"
     expected_output = "SELECT * FROM new_tbl, aave_ethereum.AaveCollateralVaultProxy_evt_DeployVault"
     output = translate_postgres(
         query=query,
