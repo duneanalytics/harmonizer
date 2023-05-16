@@ -39,7 +39,7 @@ def _translate_query(query, sqlglot_dialect, dataset=None, syntax_only=False, ta
         # Transpile to Trino
         # Update bytearray syntax for postgres
         if sqlglot_dialect == "postgres":
-            query = query.replace("'\\x", "x'")
+            query = query.replace(r"'\x", "x'")
         query_tree = sqlglot.parse_one(query, read=sqlglot_dialect)
 
         # Perform custom transformations using SQLGlot's parsed representation
