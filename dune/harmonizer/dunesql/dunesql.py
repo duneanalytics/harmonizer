@@ -26,20 +26,12 @@ class DuneSQL(Trino):
             "INT256": TokenType.INT256,
         }
 
-    class Parser(Trino.Parser):
-        """Tokens -> AST"""
-
-        pass
-
     class Generator(Trino.Generator):
         """AST -> SQL"""
 
-        TYPE_MAPPING = Trino.Generator.TYPE_MAPPING | {
-            exp.DataType.Type.UINT256: "UINT256",
-            exp.DataType.Type.INT256: "INT256",
-        }
         TRANSFORMS = Trino.Generator.TRANSFORMS | {
             exp.HexString: lambda self, e: f"0x{e.this}",
+            # preprocess will call each function in order, manipulating the AST, before it is converted to SQL
             exp.Select: transforms.preprocess(
                 [
                     # Transforms from SQLGlot
