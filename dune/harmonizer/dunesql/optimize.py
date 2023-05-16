@@ -60,6 +60,23 @@ def _handle_varchar_varbinary(expression):
                 expression=expression.right,
             )
         )
+    if isinstance(expression.left, exp.Column) and isinstance(expression.right, exp.Column):
+        # varchar column = varbinary column
+        if expression.left.type.this == exp.DataType.Type.VARCHAR:
+            return expression.replace(
+                type(expression)(
+                    this=expression.left,
+                    expression=exp.Cast(this=expression.right, to=exp.DataType.build("varchar")),
+                )
+            )
+        # varbinary column = varchar column
+        if expression.right.type.this == exp.DataType.Type.VARCHAR:
+            return expression.replace(
+                type(expression)(
+                    this=exp.Cast(this=expression.left, to=exp.DataType.build("varchar")),
+                    expression=expression.right,
+                )
+            )
     raise ValueError("unreachable")
 
 

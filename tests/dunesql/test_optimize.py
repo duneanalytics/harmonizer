@@ -80,6 +80,18 @@ testcases = [
         "in": "SELECT 0xdeadbeef = col FROM tbl",
         "out": "SELECT 0xdeadbeef = tbl.col AS _col_0 FROM tbl",
     },
+    # x = y
+    {
+        "schema": {"tbl": {"col": "varbinary", "col2": "varchar"}},
+        "in": "SELECT col = col2 FROM tbl",
+        "out": "SELECT CAST(tbl.col AS VARCHAR) = tbl.col2 AS _col_0 FROM tbl",
+    },
+    # y = x
+    {
+        "schema": {"tbl": {"col": "varbinary", "col2": "varchar"}},
+        "in": "SELECT col2 = col FROM tbl",
+        "out": "SELECT tbl.col2 = CAST(tbl.col AS VARCHAR) AS _col_0 FROM tbl",
+    },
 ]
 
 
