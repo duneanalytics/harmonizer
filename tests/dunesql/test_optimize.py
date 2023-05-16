@@ -46,17 +46,15 @@ testcases = [
     {
         "schema": {"tbl": {"col": "varbinary"}},
         "in": "SELECT col = '0xdeadbeef' FROM tbl",
-        # should remove quotes instead of casting?
-        "out": "SELECT tbl.col = CAST('0xdeadbeef' AS VARBINARY) AS _col_0 FROM tbl",
+        "out": "SELECT tbl.col = FROM_HEX('0xdeadbeef') AS _col_0 FROM tbl",
     },
     # y = x
     {
         "schema": {"tbl": {"col": "varbinary"}},
         "in": "SELECT '0xdeadbeef' = col FROM tbl",
-        # should remove quotes instead of casting?
-        "out": "SELECT CAST('0xdeadbeef' AS VARBINARY) = tbl.col AS _col_0 FROM tbl",
+        "out": "SELECT FROM_HEX('0xdeadbeef') = tbl.col AS _col_0 FROM tbl",
     },
-    # x = y
+    # # x = y
     {
         "schema": {"tbl": {"col": "varbinary"}},
         "in": "SELECT col = 'a string' FROM tbl",

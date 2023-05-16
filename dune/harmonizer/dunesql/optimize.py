@@ -27,54 +27,70 @@ def optimize(expr, schema):
     return _cast_types_in_equals(annotated_expr, coerces_to=coerces_to)
 
 
-def _handle_varchar_varbinary(expression):
-    # varchar column = hex literal
-    if isinstance(expression.right, exp.HexString):
-        return expression.replace(
-            type(expression)(
-                this=expression.left,
-                expression=exp.Cast(this=expression.right, to=exp.DataType.build("varchar")),
+def _handle_varchar_varbinary(e):
+    # varchar column = hexstring: cast hexstring to varchar
+    if isinstance(e.right, exp.HexString):
+        return e.replace(
+            type(e)(
+                this=e.left,
+                expression=exp.Cast(this=e.right, to=exp.DataType.build("varchar")),
+            )
+        )
+    # varbinary column = string literal starting with 0x: unhex string literal
+    if isinstance(e.right, exp.Literal) and e.right.is_string and e.right.this.startswith("0x"):
+        return e.replace(
+            type(e)(
+                this=e.left,
+                expression=exp.Unhex(this=e.right),
             )
         )
     # varbinary column = string literal
-    if isinstance(expression.right, exp.Literal):
-        return expression.replace(
-            type(expression)(
-                this=expression.left,
-                expression=exp.Cast(this=expression.right, to=exp.DataType.build("varbinary")),
+    if isinstance(e.right, exp.Literal):
+        return e.replace(
+            type(e)(
+                this=e.left,
+                expression=exp.Cast(this=e.right, to=exp.DataType.build("varbinary")),
             )
         )
-    # hex literal = varchar column
-    if isinstance(expression.left, exp.HexString):
-        return expression.replace(
-            type(expression)(
-                this=exp.Cast(this=expression.left, to=exp.DataType.build("varchar")),
-                expression=expression.right,
+    # hexstring = varchar column: cast hexstring to varchar
+    if isinstance(e.left, exp.HexString):
+        return e.replace(
+            type(e)(
+                this=exp.Cast(this=e.left, to=exp.DataType.build("varchar")),
+                expression=e.right,
+            )
+        )
+    # string literal starting with 0x = varbinary column: unhex string literal
+    if isinstance(e.left, exp.Literal) and e.left.is_string and e.left.this.startswith("0x"):
+        return e.replace(
+            type(e)(
+                this=exp.Unhex(this=e.left),
+                expression=e.right,
             )
         )
     # string literal = varbinary column
-    if isinstance(expression.left, exp.Literal):
-        return expression.replace(
-            type(expression)(
-                this=exp.Cast(this=expression.left, to=exp.DataType.build("varbinary")),
-                expression=expression.right,
+    if isinstance(e.left, exp.Literal):
+        return e.replace(
+            type(e)(
+                this=exp.Cast(this=e.left, to=exp.DataType.build("varbinary")),
+                expression=e.right,
             )
         )
-    if isinstance(expression.left, exp.Column) and isinstance(expression.right, exp.Column):
+    if isinstance(e.left, exp.Column) and isinstance(e.right, exp.Column):
         # varchar column = varbinary column
-        if expression.left.type.this == exp.DataType.Type.VARCHAR:
-            return expression.replace(
-                type(expression)(
-                    this=expression.left,
-                    expression=exp.Cast(this=expression.right, to=exp.DataType.build("varchar")),
+        if e.left.type.this == exp.DataType.Type.VARCHAR:
+            return e.replace(
+                type(e)(
+                    this=e.left,
+                    expression=exp.Cast(this=e.right, to=exp.DataType.build("varchar")),
                 )
             )
         # varbinary column = varchar column
-        if expression.right.type.this == exp.DataType.Type.VARCHAR:
-            return expression.replace(
-                type(expression)(
-                    this=exp.Cast(this=expression.left, to=exp.DataType.build("varchar")),
-                    expression=expression.right,
+        if e.right.type.this == exp.DataType.Type.VARCHAR:
+            return e.replace(
+                type(e)(
+                    this=exp.Cast(this=e.left, to=exp.DataType.build("varchar")),
+                    expression=e.right,
                 )
             )
     raise ValueError("unreachable")

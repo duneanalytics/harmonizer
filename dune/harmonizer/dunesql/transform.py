@@ -15,7 +15,7 @@ def replace_0x_strings_with_hex_strings(expression: exp.Expression):
                 and e.parent.left.type is not None
                 and e.parent.right.type is not None
             )
-            or isinstance(e.parent, exp.Cast)
+            or isinstance(e.parent, (exp.Cast, exp.Unhex))
         )
         else e
     )
