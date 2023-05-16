@@ -1,4 +1,5 @@
 import sqlglot
+import pytest
 from sqlglot.optimizer.qualify_columns import validate_qualify_columns
 
 from dune.harmonizer.dunesql.dunesql import DuneSQL
@@ -33,19 +34,19 @@ testcases = [
 ]
 
 
-def test_optimize_cast():
-    for tc in testcases:
-        dune_sql_expr = sqlglot.parse_one(tc["in"], read=DuneSQL)
-        optimized = optimize(dune_sql_expr, schema=tc["schema"])
-        validate_qualify_columns(optimized)
-        assert tc["out"] == optimized.sql(DuneSQL)
+@pytest.mark.parametrize("tc", testcases)
+def test_optimize_cast(tc):
+    dune_sql_expr = sqlglot.parse_one(tc["in"], read=DuneSQL)
+    optimized = optimize(dune_sql_expr, schema=tc["schema"])
+    validate_qualify_columns(optimized)
+    assert tc["out"] == optimized.sql(DuneSQL)
 
 
 # case 1
 # varbinary lit = varchar col
-# 0xdead = col -> '0xdead' = col -> generated to 0xdead = col
+# 0xdead = col -> '0xdead' = col -> 0xdead = col
 
-# case 2 covered by generation
+# case 2
 # varchar lit (hexstring) = varbinary col
 # '0xdead' = col -> 0xdead = col
 
