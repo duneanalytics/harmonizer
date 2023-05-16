@@ -99,20 +99,3 @@ def test_optimize_cast(tc):
     optimized = optimize(dune_sql_expr, schema=tc["schema"])
     validate_qualify_columns(optimized)
     assert tc["out"] == optimized.sql(DuneSQL)
-
-
-# case 1
-# varbinary lit = varchar col
-# 0xdead = col -> '0xdead' = col -> 0xdead = col
-
-# case 2
-# varchar lit (hexstring) = varbinary col
-# '0xdead' = col -> 0xdead = col
-
-# case 3
-# varchar lit (hexstring) = varchar col
-# '0xdead' = col -> '0xdead' = col
-
-# case 4
-# varbinary lit = varbinary col
-# 0xdead = col -> 0xdead = col
