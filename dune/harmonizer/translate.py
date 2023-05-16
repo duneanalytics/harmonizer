@@ -5,13 +5,11 @@ from sqlglot import ParseError
 
 from dune.harmonizer.custom_transforms import (
     add_warnings_and_banner,
-    double_quoted_param_left_placeholder,
-    double_quoted_param_right_placeholder,
     fix_bytearray_param,
     parameter_placeholder,
-    postgres_transforms,
-    spark_transforms,
     v1_tables_to_v2_tables,
+    v1_transforms,
+    v2_transforms,
 )
 from dune.harmonizer.dunesql.dunesql import DuneSQL
 from dune.harmonizer.errors import DuneTranslationError
@@ -62,13 +60,14 @@ def _translate_query(query, sqlglot_dialect, dataset=None, syntax_only=False, ta
         )
         raise DuneTranslationError(error_message)
 
-    # Perform custom transformations using SQLGlot's parsed representation
+    # Perform custom transformations on the AST. Transforms depend on the dataset; for legacy Postgres datasets
+    # we need to do table mappings as well.
     if sqlglot_dialect == "spark":
-        query_tree = spark_transforms(query_tree)
+        query_tree = v2_transforms(query_tree)
         if syntax_only:
             raise ValueError("the `syntax_only` flag does not apply for Spark queries")
     elif sqlglot_dialect == "postgres":
-        query_tree = postgres_transforms(query_tree)
+        query_tree = v1_transforms(query_tree)
         if not syntax_only:
             # Add provided table mapping to the default mapping
             mapping = spellbook_mapping(dataset)
