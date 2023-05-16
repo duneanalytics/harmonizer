@@ -8,14 +8,23 @@ def replace_0x_strings_with_hex_strings(expression: exp.Expression):
     return expression.transform(
         lambda e: exp.HexString(this=e.this[2:])
         if isinstance(e, exp.Literal) and e.is_string and e.this.startswith("0x")
+        # workaround for optimization: don't force hex string in binary expressions if we have type information
+        and not (
+            (
+                isinstance(e.parent, (exp.EQ, exp.NEQ))
+                and e.parent.left.type is not None
+                and e.parent.right.type is not None
+            )
+            or isinstance(e.parent, exp.Cast)
+        )
         else e
     )
 
 
 def remove_lower_around_hex_strings(expression: exp.Expression):
-    """Remove the LOWER() function around hex strings"""
+    """Remove the LOWER() and FROM_HEX() function around hex strings"""
     return expression.transform(
-        lambda e: e.this if isinstance(e, exp.Lower) and isinstance(e.this, exp.HexString) else e
+        lambda e: e.this if isinstance(e, (exp.Lower, exp.Unhex)) and isinstance(e.this, exp.HexString) else e
     )
 
 
