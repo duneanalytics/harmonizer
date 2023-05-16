@@ -15,16 +15,23 @@ def replace_0x_strings_with_hex_strings(expression: exp.Expression):
                 and e.parent.left.type is not None
                 and e.parent.right.type is not None
             )
-            or isinstance(e.parent, (exp.Cast, exp.Unhex))
+            or isinstance(e.parent, exp.Unhex)
+            or (isinstance(e.parent, exp.Cast) and e.parent.this.type is not None)
         )
         else e
     )
 
 
-def remove_string_function_calls_on_hex_strings(expression: exp.Expression):
-    """Remove the LOWER() and FROM_HEX() function used on hex strings, since hex strings are varbinary"""
+def remove_calls_on_hex_strings(expression: exp.Expression):
+    """Remove LOWER(), FROM_HEX(), and (TRY)CAST functions used on hex strings, since hex strings are varbinary"""
     return expression.transform(
-        lambda e: e.this if isinstance(e, (exp.Lower, exp.Unhex)) and isinstance(e.this, exp.HexString) else e
+        lambda e: e.this
+        if isinstance(e.this, exp.HexString)
+        and (
+            isinstance(e, (exp.Lower, exp.Unhex))
+            or (isinstance(e, (exp.Cast, exp.TryCast)) and e.to.this == exp.DataType.Type.VARBINARY)
+        )
+        else e
     )
 
 
