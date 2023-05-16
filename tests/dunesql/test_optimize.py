@@ -1,4 +1,3 @@
-import pytest
 import sqlglot
 from sqlglot.optimizer.qualify_columns import validate_qualify_columns
 
@@ -39,7 +38,6 @@ def test_optimize_cast():
         dune_sql_expr = sqlglot.parse_one(tc["in"], read=DuneSQL)
         optimized = optimize(dune_sql_expr, schema=tc["schema"])
         validate_qualify_columns(optimized)
-        print(tc)
         assert tc["out"] == optimized.sql(DuneSQL)
 
 

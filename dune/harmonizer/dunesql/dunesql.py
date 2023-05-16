@@ -8,7 +8,6 @@ from dune.harmonizer.dunesql.transform import (
     pipe_of_hex_strings_to_bytearray_concat,
     remove_lower_around_hex_strings,
     rename_bytea2numeric_to_bytearray_to_bigint,
-    replace_0x_strings_with_hex_strings,
 )
 
 

@@ -3,7 +3,7 @@ from functools import partial
 
 import sqlglot
 
-from dune.harmonizer.table_replacements import postgres_table_replacements
+from dune.harmonizer.table_replacements import table_replacements
 
 
 def extract_nested_select(text):
@@ -276,7 +276,9 @@ def explicit_alias_on_cast(query_tree):
     """In Postgres, a simple cast of a column will retain the column name, so we add an explicit cast"""
     return query_tree.transform(
         lambda e: sqlglot.exp.Alias(this=e, alias=e.alias_or_name)
-        if isinstance(e, sqlglot.exp.Cast) and isinstance(e.this, sqlglot.exp.Column)
+        if isinstance(e, sqlglot.exp.Cast)
+        and isinstance(e.this, sqlglot.exp.Column)
+        and isinstance(e.parent, sqlglot.exp.Select)
         else e
     )
 
@@ -298,14 +300,14 @@ def postgres_transforms(query):
     return query_tree
 
 
-def v1_tables_to_v2_tables(query_tree, dataset):
+def v1_tables_to_v2_tables(query_tree, dataset, mapping):
     """Apply a series of transforms to the query tree, recursively using SQLGlot's recursive transform function.
 
-    Each transform takes and returns a sqlglot.Expression
-
-    These transforms are concerned with translating from the v1 tables in Postgres datasets to the v2 tables"""
+    Each transform takes and returns a sqlglot.Expression.
+    The transforms are concerned with translating from the v1 tables in Postgres datasets to the v2 tables.
+    The replacements are given by the `mapping` dictionary."""
     transforms = (
-        postgres_table_replacements(dataset),
+        table_replacements(dataset, mapping),
         dex_trades_fixes,
         chain_where(dataset),
         rename_amount_column,

@@ -1,8 +1,5 @@
+from sqlglot import TokenType, exp, transpile
 from sqlglot.dialects.trino import Trino
-from sqlglot.dialects.spark import Spark
-from sqlglot.generator import Generator
-from sqlglot.tokens import Tokenizer
-from sqlglot import TokenType, transpile, exp
 
 
 class DuneSQL(Trino):

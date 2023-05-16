@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "dune-harmonizer"
-version = "0.19.0"
+version = "0.21.0"
 description = ""
 authors = ["Vegard Stikbakke <vegard@dune.com>"]
 readme = "README.md"
@@ -8,7 +8,7 @@ packages = [{include = "dune"}]
 
 [tool.poetry.dependencies]
 python = "^3.11"
-sqlglot = "^12.3.0"
+sqlglot = "^12.4.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.2.2"
