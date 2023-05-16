@@ -21,8 +21,8 @@ def replace_0x_strings_with_hex_strings(expression: exp.Expression):
     )
 
 
-def remove_lower_around_hex_strings(expression: exp.Expression):
-    """Remove the LOWER() and FROM_HEX() function around hex strings"""
+def remove_string_function_calls_on_hex_strings(expression: exp.Expression):
+    """Remove the LOWER() and FROM_HEX() function used on hex strings, since hex strings are varbinary"""
     return expression.transform(
         lambda e: e.this if isinstance(e, (exp.Lower, exp.Unhex)) and isinstance(e.this, exp.HexString) else e
     )

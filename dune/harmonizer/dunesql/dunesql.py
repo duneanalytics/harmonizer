@@ -6,7 +6,7 @@ from dune.harmonizer.dunesql.transform import (
     cast_date_strings,
     concat_of_hex_string_to_bytearray_concat,
     pipe_of_hex_strings_to_bytearray_concat,
-    remove_lower_around_hex_strings,
+    remove_string_function_calls_on_hex_strings,
     rename_bytea2numeric_to_bytearray_to_bigint,
     replace_0x_strings_with_hex_strings,
 )
@@ -51,7 +51,7 @@ class DuneSQL(Trino):
                     cast_date_strings,
                     # Optimizations
                     replace_0x_strings_with_hex_strings,  # should happen at parse time?
-                    remove_lower_around_hex_strings,
+                    remove_string_function_calls_on_hex_strings,
                     concat_of_hex_string_to_bytearray_concat,
                     pipe_of_hex_strings_to_bytearray_concat,
                 ]
