@@ -283,11 +283,10 @@ def explicit_alias_on_cast(query_tree):
     )
 
 
-def postgres_transforms(query):
+def postgres_transforms(query_tree):
     """Apply a series of transforms to the query tree, recursively using SQLGlot's recursive transform function.
 
     Each transform takes and returns a sqlglot.Expression"""
-    query_tree = sqlglot.parse_one(query, read="trino")
     transforms = (
         cast_numeric,
         cast_timestamp_parameters,
@@ -317,11 +316,10 @@ def v1_tables_to_v2_tables(query_tree, dataset, mapping):
     return query_tree
 
 
-def spark_transforms(query):
+def spark_transforms(query_tree):
     """Apply a series of transforms to the query tree, recursively using SQLGlot's recursive transform function.
 
     Each transform takes and returns a sqlglot.Expression"""
-    query_tree = sqlglot.parse_one(query, read="trino")
     transforms = (
         cast_numeric,
         cast_timestamp_parameters,

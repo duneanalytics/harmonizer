@@ -37,17 +37,18 @@ def _translate_query(query, sqlglot_dialect, dataset=None, syntax_only=False, ta
             query = query.replace(original, replace)
 
         # Transpile to Trino
-        query = sqlglot.transpile(query, read=sqlglot_dialect, write="trino", pretty=True)[0]
+        # Update bytearray syntax for postgres
+        if sqlglot_dialect == "postgres":
+            query = query.replace("'\\x", "x'")
+        query_tree = sqlglot.parse_one(query, read=sqlglot_dialect)
 
         # Perform custom transformations using SQLGlot's parsed representation
         if sqlglot_dialect == "spark":
-            query_tree = spark_transforms(query)
+            query_tree = spark_transforms(query_tree)
             if syntax_only:
                 raise ValueError("the `syntax_only` flag does not apply for Spark queries")
         elif sqlglot_dialect == "postgres":
-            # Update bytearray syntax
-            query = query.replace("\\x", "0x")
-            query_tree = postgres_transforms(query)
+            query_tree = postgres_transforms(query_tree)
             if not syntax_only:
                 # Add provided table mapping to the default mapping
                 mapping = spellbook_mapping(dataset)
