@@ -41,7 +41,7 @@ def _translate_query(query, sqlglot_dialect, dataset=None, syntax_only=False, ta
 
     # Parse query using SQLGlot
     try:
-        query_tree = sqlglot.parse_one(query, read=sqlglot_dialect)
+        query_tree = sqlglot.parse_one(query, read=sqlglot_dialect, null_ordering="nulls_are_last")
     except ParseError as e:
         # SQLGlot inserts terminal style colors to emphasize error location.
         # We remove these, as they mess up the formatting.
