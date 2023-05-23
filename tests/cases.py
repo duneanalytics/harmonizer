@@ -25,6 +25,8 @@ postgres_test_cases = [
     PostgresTestCase("test_cases/postgres/cross_join.in", "test_cases/postgres/cross_join.out", "ethereum"),
     PostgresTestCase("test_cases/postgres/median.in", "test_cases/postgres/median.out", "ethereum"),
     PostgresTestCase("test_cases/postgres/explicit_cast.in", "test_cases/postgres/explicit_cast.out", "ethereum"),
+    PostgresTestCase("test_cases/postgres/explicit_cast.in", "test_cases/postgres/explicit_cast.out", "ethereum"),
+    PostgresTestCase("test_cases/postgres/order_by.in", "test_cases/postgres/order_by.out", "ethereum"),
 ]
 
 
