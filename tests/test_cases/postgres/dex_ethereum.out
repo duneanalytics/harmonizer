@@ -1,5 +1,3 @@
-/* Success! If you're still running into issues, check out https://dune.com/docs/query/syntax-differences/ or reach out in the #dune-sql Discord channel. */
-
 SELECT
   project AS "Project",
   SUM(CAST(amount_usd AS DOUBLE)) AS usd_volume

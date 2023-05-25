@@ -1,8 +1,6 @@
-/* Success! If you're still running into issues, check out https://dune.com/docs/query/syntax-differences/ or reach out in the #dune-sql Discord channel. */
-
 SELECT
-    month,
-    collection,
-    num_trades,
-    RANK() OVER (PARTITION BY month ORDER BY num_trades DESC) AS rank
-  FROM monthly_trades
+  month,
+  collection,
+  num_trades,
+  RANK() OVER (PARTITION BY month ORDER BY num_trades DESC) AS rank
+FROM monthly_trades
