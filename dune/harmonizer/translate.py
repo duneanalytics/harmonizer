@@ -4,7 +4,7 @@ import sqlglot
 from sqlglot import ParseError
 
 from dune.harmonizer.custom_transforms import (
-    add_warnings_and_banner,
+    add_warnings,
     fix_bytearray_param,
     parameter_placeholder,
     v1_tables_to_v2_tables,
@@ -85,4 +85,4 @@ def _translate_query(query, sqlglot_dialect, dataset=None, syntax_only=False, ta
     # Non-SQLGlot transforms
     query = fix_bytearray_param(query)
 
-    return add_warnings_and_banner(query)
+    return add_warnings(query)

@@ -330,7 +330,7 @@ def v2_transforms(query_tree):
     return query_tree
 
 
-def add_warnings_and_banner(query):
+def add_warnings(query):
     """Add a success banner at the top, and look for a few cases of things we don't fix and add a warning if present"""
     if "lower('{{" in query.lower():
         query = (
@@ -346,12 +346,7 @@ def add_warnings_and_banner(query):
             "\n\n"
         ) + query
 
-    # add note at top
-    return (
-        "/* Success! If you're still running into issues, check out https://dune.com/docs/query/syntax-differences/ "
-        "or reach out in the #dune-sql Discord channel. */"
-        "\n\n"
-    ) + query
+    return query
 
 
 def parameter_placeholder(p):
