@@ -218,14 +218,6 @@ def bytearray_parameter_fix(node):
     return node
 
 
-def cast_numeric(node):
-    """if a column has amount/value in the name, cast to double"""
-    if node.key == "column":
-        if any(val in node.name.lower() for val in ("amount", "value")):
-            return sqlglot.parse_one("cast(" + node.name + " as double)", read="trino")
-    return node
-
-
 def cast_timestamp_parameters(node):
     """Look for parameters with 'date' or 'time' in, and cast these as timestamps"""
     if node.key == "literal":
@@ -288,7 +280,6 @@ def v1_transforms(query_tree):
 
     Each transform takes and returns a sqlglot.Expression"""
     transforms = (
-        cast_numeric,
         cast_timestamp_parameters,
         warn_sequence,
         bytearray_parameter_fix,
@@ -321,7 +312,6 @@ def v2_transforms(query_tree):
 
     Each transform takes and returns a sqlglot.Expression"""
     transforms = (
-        cast_numeric,
         cast_timestamp_parameters,
         warn_sequence,
     )
