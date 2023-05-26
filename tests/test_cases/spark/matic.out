@@ -1,7 +1,7 @@
 WITH transfers_to AS (
   SELECT
     "to" AS wallet,
-    SUM(TRY_CAST(CAST(value AS DOUBLE) AS DOUBLE)) / 1e18 AS amount
+    SUM(TRY_CAST(value AS DOUBLE)) / 1e18 AS amount
   FROM erc20_polygon.evt_Transfer
   WHERE
     contract_address = 0xea1132120ddcdda2f119e99fa7a27a0d036f7ac9
@@ -12,7 +12,7 @@ WITH transfers_to AS (
     "from" AS wallet,
     (
       -1
-    ) * SUM(TRY_CAST(CAST(value AS DOUBLE) AS DOUBLE)) / 1e18 AS amount
+    ) * SUM(TRY_CAST(value AS DOUBLE)) / 1e18 AS amount
   FROM erc20_polygon.evt_Transfer
   WHERE
     contract_address = 0xea1132120ddcdda2f119e99fa7a27a0d036f7ac9
@@ -29,13 +29,12 @@ WITH transfers_to AS (
 )
 SELECT
   wallet AS "user",
-  SUM(CAST(amount AS DOUBLE)) AS amount,
+  SUM(amount) AS amount,
   0 AS ethdebt
 FROM all_opers
 GROUP BY
   1
 HAVING
-  SUM(CAST(amount AS DOUBLE)) >= 0.1
-  AND wallet <> 0x0000000000000000000000000000000000000000
+  SUM(amount) >= 0.1 AND wallet <> 0x0000000000000000000000000000000000000000
 ORDER BY
   2 DESC

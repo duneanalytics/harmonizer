@@ -41,8 +41,8 @@ class DuneSQL(Trino):
                     rename_bytea2numeric_to_bytearray_to_bigint,
                     cast_boolean_strings,
                     cast_date_strings,
+                    replace_0x_strings_with_hex_strings,
                     # Optimizations
-                    replace_0x_strings_with_hex_strings,  # should happen at parse time?
                     remove_calls_on_hex_strings,
                     concat_of_hex_string_to_bytearray_concat,
                     pipe_of_hex_strings_to_bytearray_concat,
