@@ -11,7 +11,7 @@ def read_test_case(testcase):
     in_filename = p / testcase.in_filename
     out_filename = p / testcase.out_filename
     with open(in_filename, "r") as f:
-        query = f.read()
+        query = f.read().strip()
     with open(out_filename, "r") as f:
-        expected_output = canonicalize(f.read())
+        expected_output = canonicalize(f.read().strip())
     return query, expected_output

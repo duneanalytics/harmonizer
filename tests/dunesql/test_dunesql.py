@@ -182,3 +182,17 @@ def test_concat_of_0x_strings():
         "SELECT BYTEARRAY_CONCAT(BYTEARRAY_CONCAT(0x10, 0x20), 0x30)"
         == sqlglot.transpile("SELECT '0x10' || '0x20' || '0x30'", read="spark", write=DuneSQL)[0]
     )
+
+
+def test_varchar_drop_size():
+    assert (
+        "SELECT TRY_CAST('123456789' AS VARCHAR)"
+        == sqlglot.transpile("select cast('123456789' as varchar(5))", read="spark", write=DuneSQL)[0]
+    )
+
+
+def test_varchar_drop_size_2():
+    assert (
+        "SELECT TRY_CAST('123456789' AS VARCHAR)"
+        == sqlglot.transpile("select '123456789'::varchar(2)", read="spark", write=DuneSQL)[0]
+    )

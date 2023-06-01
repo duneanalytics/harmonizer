@@ -111,3 +111,13 @@ def pipe_expression_to_bytearray_concat_call(e: exp.Expression):
 def pipe_of_hex_strings_to_bytearray_concat(expression: exp.Expression):
     """Replace all || with bytearray_concat function call if arguments are hex strings"""
     return expression.transform(pipe_expression_to_bytearray_concat_call)
+
+
+def remove_varchar_lengths_in_casts(expression: exp.Expression):
+    """Remove lengths from varchar casts as they would otherwise truncate in dunesql"""
+    return expression.transform(
+        lambda e: None
+        if isinstance(e, exp.DataTypeSize)
+        and isinstance(e.parent, exp.DataType) and e.parent.is_type(exp.DataType.Type.VARCHAR)
+        else e
+    )
