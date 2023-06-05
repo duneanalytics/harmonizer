@@ -7,7 +7,7 @@ readme = "README.md"
 packages = [{include = "dune"}]
 
 [tool.poetry.dependencies]
-python = "^3.11"
+python = "^3.10"
 sqlglot = "^13"
 
 [tool.poetry.group.dev.dependencies]
