@@ -2,6 +2,7 @@ import re
 from functools import partial
 
 import sqlglot
+from sqlglot import exp
 
 from dune.harmonizer.table_replacements import table_replacements
 
@@ -243,6 +244,15 @@ def warn_sequence(node):
     return node
 
 
+def cast_division_to_double(node):
+    """Spark casts division to double, but Trino doesn't, so we cast the denumerator to a double"""
+    return node.transform(
+        lambda e: exp.Div(this=e.this, expression=exp.Cast(this=e.right, to=exp.DataType.build("double")))
+        if isinstance(e, exp.Div)
+        else e
+    )
+
+
 def rename_amount_column(query):
     """Rename the usd_amount column"""
     return sqlglot.parse_one(query.sql(dialect="trino").replace("usd_amount", "amount_usd"), read="trino")
@@ -314,6 +324,7 @@ def v2_transforms(query_tree):
     transforms = (
         cast_timestamp_parameters,
         warn_sequence,
+        cast_division_to_double,
     )
     for f in transforms:
         query_tree = query_tree.transform(f)
