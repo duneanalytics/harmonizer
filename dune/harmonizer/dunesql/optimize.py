@@ -16,7 +16,7 @@ def optimize(expr, schema):
     coerces_to = TypeAnnotator.COERCES_TO
 
     annotated_expr = optimizer.annotate_types(
-        expression=optimizer.qualify_columns(
+        expression=optimizer.qualify(
             expression=expr,
             schema=schema,
         ),
