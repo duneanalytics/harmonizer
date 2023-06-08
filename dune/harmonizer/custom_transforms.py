@@ -249,6 +249,21 @@ def cast_division_to_double(node):
     return node.transform(lambda e: e.left / exp.cast(e.right, "double") if isinstance(e, exp.Div) else e)
 
 
+def null_safe_indexing(node):
+    """Ensure compatibility with Spark's null safe indexing
+
+    Spark uses null safe indexing, but Trino doesn't, so we transform to use Trino's null safe indexing function,
+    `element_at`.
+
+    We also add 1 to the index used, since Spark arrays are 0-indexed, while Trino's are 1-indexed.
+    """
+    return node.transform(
+        lambda e: exp.Anonymous(this="element_at", expressions=[e.this, e.expressions[0] + 1])
+        if isinstance(e, exp.Bracket)
+        else e
+    )
+
+
 def rename_amount_column(query):
     """Rename the usd_amount column"""
     return sqlglot.parse_one(query.sql(dialect="trino").replace("usd_amount", "amount_usd"), read="trino")
@@ -321,6 +336,7 @@ def v2_transforms(query_tree):
         cast_timestamp_parameters,
         warn_sequence,
         cast_division_to_double,
+        null_safe_indexing,
     )
     for f in transforms:
         query_tree = query_tree.transform(f)

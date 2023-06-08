@@ -11,8 +11,10 @@ WITH transfers_to AS (
   SELECT
     "from" AS wallet,
     (
-      -1
-    ) * SUM(TRY_CAST(value AS DOUBLE)) / CAST(1e18 AS DOUBLE) AS amount
+      (
+        -1
+      ) * SUM(TRY_CAST(value AS DOUBLE))
+    ) / CAST(1e18 AS DOUBLE) AS amount
   FROM erc20_polygon.evt_Transfer
   WHERE
     contract_address = 0xea1132120ddcdda2f119e99fa7a27a0d036f7ac9
