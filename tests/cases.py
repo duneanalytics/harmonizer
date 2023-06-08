@@ -53,6 +53,7 @@ spark_test_cases = [
     SparkTestCase("test_cases/spark/0x_strings_leading_0.in", "test_cases/spark/0x_strings_leading_0.out"),
     SparkTestCase("test_cases/spark/datediff.in", "test_cases/spark/datediff.out"),
     SparkTestCase("test_cases/spark/integer_division.in", "test_cases/spark/integer_division.out"),
+    SparkTestCase("test_cases/spark/varchar.in", "test_cases/spark/varchar.out"),
 ]
 
 
