@@ -246,11 +246,7 @@ def warn_sequence(node):
 
 def cast_division_to_double(node):
     """Spark casts division to double, but Trino doesn't, so we cast the denumerator to a double"""
-    return node.transform(
-        lambda e: exp.Div(this=e.this, expression=exp.Cast(this=e.right, to=exp.DataType.build("double")))
-        if isinstance(e, exp.Div)
-        else e
-    )
+    return node.transform(lambda e: e.left / exp.cast(e.right, "double") if isinstance(e, exp.Div) else e)
 
 
 def rename_amount_column(query):
