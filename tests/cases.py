@@ -27,6 +27,7 @@ postgres_test_cases = [
     PostgresTestCase("test_cases/postgres/explicit_cast.in", "test_cases/postgres/explicit_cast.out", "ethereum"),
     PostgresTestCase("test_cases/postgres/explicit_cast.in", "test_cases/postgres/explicit_cast.out", "ethereum"),
     PostgresTestCase("test_cases/postgres/order_by.in", "test_cases/postgres/order_by.out", "ethereum"),
+    PostgresTestCase("test_cases/postgres/integer_division.in", "test_cases/postgres/integer_division.out", "ethereum"),
 ]
 
 
@@ -70,5 +71,6 @@ postgres_cases_to_remove = [
     PostgresTestCase(
         "test_cases/postgres/table_replacement.in", "test_cases/postgres/table_replacement.out", "optimism"
     ),
+    PostgresTestCase("test_cases/postgres/integer_division.in", "test_cases/postgres/integer_division.out", "ethereum"),
 ]
 nlq_test_cases = [case for case in postgres_test_cases if case not in postgres_cases_to_remove]
