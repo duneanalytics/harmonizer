@@ -107,7 +107,7 @@ def _cast_types_in_equals(expression, coerces_to):
         if exp.DataType.Type.VARBINARY in types and exp.DataType.Type.VARCHAR in types:
             return _handle_varchar_varbinary(expression)
 
-        # Otherwise use coercion hierarcy to cast one type to the other
+        # Otherwise use coercion hierarchy to cast one type to the other
         left_coerces_to, right_coerces_to = coerces_to.get(left_type, set()), coerces_to.get(right_type, set())
         # Cast left operand to type of right
         if right_type in left_coerces_to:
