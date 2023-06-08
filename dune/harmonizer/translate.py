@@ -7,6 +7,7 @@ from dune.harmonizer.custom_transforms import (
     add_warnings,
     fix_bytearray_param,
     parameter_placeholder,
+    transform_interval_cast,
     v1_tables_to_v2_tables,
     v1_transforms,
     v2_transforms,
@@ -38,6 +39,7 @@ def _translate_query(query, sqlglot_dialect, dataset=None, syntax_only=False, ta
     # because it's just a general byte array notation. But we want to always parse it as a hex string.
     if sqlglot_dialect == "postgres":
         query = query.replace(r"'\x", "x'")
+        query = transform_interval_cast(query)
 
     # Parse query using SQLGlot
     try:

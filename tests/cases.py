@@ -28,6 +28,7 @@ postgres_test_cases = [
     PostgresTestCase("test_cases/postgres/explicit_cast.in", "test_cases/postgres/explicit_cast.out", "ethereum"),
     PostgresTestCase("test_cases/postgres/order_by.in", "test_cases/postgres/order_by.out", "ethereum"),
     PostgresTestCase("test_cases/postgres/integer_division.in", "test_cases/postgres/integer_division.out", "ethereum"),
+    PostgresTestCase("test_cases/postgres/interval.in", "test_cases/postgres/interval.out", "ethereum"),
 ]
 
 
