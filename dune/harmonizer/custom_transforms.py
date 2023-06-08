@@ -322,6 +322,7 @@ def v1_tables_to_v2_tables(query_tree, dataset, mapping):
         dex_trades_fixes,
         chain_where(dataset),
         rename_amount_column,
+        cast_division_to_double,
     )
     for f in transforms:
         query_tree = query_tree.transform(f)
