@@ -1,0 +1,2 @@
+SELECT
+  INTERVAL '1' day

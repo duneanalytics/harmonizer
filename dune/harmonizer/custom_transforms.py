@@ -3,6 +3,7 @@ from functools import partial
 
 import sqlglot
 from sqlglot import exp
+from sqlglot.expressions import to_interval
 
 from dune.harmonizer.table_replacements import table_replacements
 
@@ -283,6 +284,14 @@ def chain_where(dataset):
         "polygon": chain_where_polygon,
         "ethereum": chain_where_ethereum,
     }[dataset]
+
+
+def transform_interval_cast(query):
+    query_tree = sqlglot.parse_one(query, read="postgres")
+    query_tree = query_tree.transform(
+        lambda e: to_interval(e.this) if isinstance(e, exp.TryCast) and e.to == exp.DataType.build("interval") else e
+    )
+    return query_tree.sql(dialect="postgres")
 
 
 def explicit_alias_on_cast(query_tree):
