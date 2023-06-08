@@ -1,1 +1,1 @@
-select array_col[0 + 0]
+select array_col[0 + 0], arr[2].foo.bar, arr[i]

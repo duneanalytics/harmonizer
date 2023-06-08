@@ -1,2 +1,4 @@
 SELECT
-  array_col[1]
+  ELEMENT_AT(array_col, 0 + 0 + 1),
+  ELEMENT_AT(arr, 2 + 1).foo.bar,
+  ELEMENT_AT(arr, i + 1)
