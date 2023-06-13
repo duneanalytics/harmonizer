@@ -1,6 +1,7 @@
 import pytest
 
 from dune.harmonizer import translate_postgres, translate_spark
+from dune.harmonizer.errors import DuneTranslationError
 from tests.cases import nlq_test_cases, postgres_test_cases, spark_test_cases
 from tests.helpers import canonicalize, read_test_case
 
@@ -39,3 +40,8 @@ def test_translate_with_mapping():
         },
     )
     assert canonicalize(expected_output) in canonicalize(output)
+
+
+def test_translate_errors():
+    with pytest.raises(DuneTranslationError):
+        translate_postgres(query="select encode(account, 'hex')", dataset="ethereum")
