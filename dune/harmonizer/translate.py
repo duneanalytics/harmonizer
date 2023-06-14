@@ -29,9 +29,8 @@ def _clean_dataset(dataset):
 
 def _handle_parse_error(parameter_map: dict[str, str], e: ParseError) -> str:
     # SQLGlot inserts terminal style colors to emphasize error location.
-    # We remove these, as they mess up the formatting.
-    # Also, don't leak intermediate param syntax in error message
-    error_message = str(e)#.replace("\x1b[4m", "").replace("\x1b[0m", "")
+    # We change these to be more Unicode-friendly.
+    error_message = str(e).replace("\x1b[4m", ">>>").replace("\x1b[0m", "<<<")
 
     # Replace any placeholders in the error message with their param
     for replace, original in parameter_map.items():
