@@ -1,0 +1,4 @@
+SELECT
+  col
+FROM t
+CROSS JOIN UNNEST(c) AS _u(col)

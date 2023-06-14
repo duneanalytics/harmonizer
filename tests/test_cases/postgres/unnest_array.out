@@ -1,0 +1,3 @@
+SELECT
+  col
+FROM UNNEST(ARRAY[1]) AS _u(col)
