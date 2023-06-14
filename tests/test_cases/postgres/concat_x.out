@@ -1,0 +1,5 @@
+SELECT
+  CONCAT(
+    CAST(COALESCE(COALESCE('x', ''), '') AS VARCHAR),
+    CAST(COALESCE(COALESCE('lol', ''), '') AS VARCHAR)
+  )

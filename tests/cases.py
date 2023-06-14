@@ -32,6 +32,7 @@ postgres_test_cases = [
     PostgresTestCase("test_cases/postgres/interval.in", "test_cases/postgres/interval.out", "ethereum"),
     PostgresTestCase("test_cases/postgres/unnest_array.in", "test_cases/postgres/unnest_array.out", "ethereum"),
     PostgresTestCase("test_cases/postgres/unnest_table.in", "test_cases/postgres/unnest_table.out", "ethereum"),
+    PostgresTestCase("test_cases/postgres/concat_x.in", "test_cases/postgres/concat_x.out", "ethereum"),
 ]
 
 
