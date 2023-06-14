@@ -167,9 +167,10 @@ def test_concat_of_0x_strings():
         "SELECT BYTEARRAY_CONCAT(0xdeadbeef, 0x10)"
         == sqlglot.transpile("SELECT concat('0xdeadbeef', '0x10')", read="spark", write=DuneSQL)[0]
     )
-    # doesn't handle other cases than exactly two arguments, but one argument is optimized away by SQLGlot
+    x = sqlglot.parse_one("SELECT concat('0x10'), CONCAT('0x10', '0x20', '0x30')", read="spark")
+    x.sql(DuneSQL)
     assert (
-        "SELECT 0x10, CONCAT(0x10, 0x20, 0x30)"
+        "SELECT 0x10, CONCAT(CAST(0x10 AS VARCHAR), CAST(0x20 AS VARCHAR), CAST(0x30 AS VARCHAR))"
         == sqlglot.transpile("SELECT concat('0x10'), CONCAT('0x10', '0x20', '0x30')", read="spark", write=DuneSQL)[0]
     )
     # pipe operator

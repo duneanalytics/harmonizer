@@ -85,7 +85,7 @@ def concat_of_hex_string_to_bytearray_concat(expression: exp.Expression):
     """Replace any CONCAT call with bytearray_concat function call if arguments are hex strings"""
     return expression.transform(
         lambda e: exp.Anonymous(this="bytearray_concat", expressions=e.expressions)
-        if isinstance(e, exp.Concat)
+        if isinstance(e, (exp.Concat, exp.SafeConcat))
         and all(isinstance(arg, exp.HexString) for arg in e.expressions)
         and len(e.expressions) == 2  # bytearray_concat isn't variadic; only supports 2 arguments
         else e
