@@ -42,6 +42,7 @@ def test_translate_with_mapping():
     assert canonicalize(expected_output) in canonicalize(output)
 
 
-def test_translate_errors():
+@pytest.mark.parametrize("query", ["select encode(account, 'hex')", "select replace(replace, 'renBTC', 'WBTC') from t"])
+def test_translate_errors(query):
     with pytest.raises(DuneTranslationError):
-        translate_postgres(query="select encode(account, 'hex')", dataset="ethereum")
+        translate_postgres(query=query, dataset="ethereum")

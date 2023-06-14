@@ -27,6 +27,25 @@ def _clean_dataset(dataset):
     raise ValueError(f"Unknown dataset: {dataset}")
 
 
+def _handle_parse_error(parameter_map: dict[str, str], e: ParseError) -> str:
+    # SQLGlot inserts terminal style colors to emphasize error location.
+    # We remove these, as they mess up the formatting.
+    # Also, don't leak intermediate param syntax in error message
+    error_message = str(e)#.replace("\x1b[4m", "").replace("\x1b[0m", "")
+
+    # Replace any placeholders in the error message with their param
+    for replace, original in parameter_map.items():
+        error_message = error_message.replace(replace, original)
+
+    # Remove Line and Column information, since it's outdated due to previous transforms.
+    error_message = re.sub(
+        ". Line [0-9]+, Col: [0-9]+.",
+        ".",
+        error_message,
+    )
+    return error_message
+
+
 def _translate_query(query, sqlglot_dialect, dataset=None, syntax_only=False, table_mapping=None):
     """Translate a query using SQLGLot plus custom rules"""
     # Insert placeholders for the parameters we use in Dune (`{{ param }}`), SQLGlot doesn't handle those
@@ -40,28 +59,18 @@ def _translate_query(query, sqlglot_dialect, dataset=None, syntax_only=False, ta
     # because it's just a general byte array notation. But we want to always parse it as a hex string.
     if sqlglot_dialect == "postgres":
         query = query.replace(r"'\x", "x'")
-        query = transform_interval_cast(query)
+        try:
+            query = transform_interval_cast(query)
+        except ParseError as e:
+            raise DuneTranslationError(_handle_parse_error(parameter_map, e))
+        except SqlglotError as e:
+            raise DuneTranslationError(str(e))
 
     # Parse query using SQLGlot
     try:
         query_tree = sqlglot.parse_one(query, read=sqlglot_dialect)
     except ParseError as e:
-        # SQLGlot inserts terminal style colors to emphasize error location.
-        # We remove these, as they mess up the formatting.
-        # Also, don't leak intermediate param syntax in error message
-        error_message = str(e).replace("\x1b[4m", "").replace("\x1b[0m", "")
-
-        # Replace any placeholders in the error message with their param
-        for replace, original in parameter_map.items():
-            error_message = error_message.replace(replace, original)
-
-        # Remove Line and Column information, since it's outdated due to previous transforms.
-        error_message = re.sub(
-            ". Line [0-9]+, Col: [0-9]+.",
-            ".",
-            error_message,
-        )
-        raise DuneTranslationError(error_message)
+        raise DuneTranslationError(_handle_parse_error(parameter_map, e))
     except SqlglotError as e:
         raise DuneTranslationError(str(e))
 
