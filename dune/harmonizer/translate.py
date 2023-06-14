@@ -58,6 +58,7 @@ def _translate_query(query, sqlglot_dialect, dataset=None, syntax_only=False, ta
     # because it's just a general byte array notation. But we want to always parse it as a hex string.
     if sqlglot_dialect == "postgres":
         query = query.replace(r"'\x", "x'")
+        query = query.replace("x''", "'x'")  # SQLGlot is unable to tokenize this so work around
         try:
             query = transform_interval_cast(query)
         except ParseError as e:
