@@ -2,5 +2,5 @@ SELECT
   month,
   collection,
   num_trades,
-  RANK() OVER (PARTITION BY month ORDER BY num_trades DESC) AS rank
+  RANK() OVER (PARTITION BY month ORDER BY num_trades DESC NULLS FIRST) AS rank
 FROM monthly_trades
