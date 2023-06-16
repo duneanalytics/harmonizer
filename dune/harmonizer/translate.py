@@ -103,7 +103,10 @@ def _translate_query(query, sqlglot_dialect, dataset=None, syntax_only=False, ta
                 raise DuneTranslationError(str(e))
 
     # Output the query as DuneSQL
-    query = query_tree.sql(dialect=DuneSQL, pretty=True)
+    try:
+        query = query_tree.sql(dialect=DuneSQL, pretty=True)
+    except SqlglotError as e:
+        raise DuneTranslationError(str(e))
 
     # Replace placeholders with Dune params again
     for replace, original in parameter_map.items():
