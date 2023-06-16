@@ -305,6 +305,22 @@ def explicit_alias_on_cast(query_tree):
     )
 
 
+def wrap_generate_series_with_explode(query_tree):
+    """Explicitly explode a generate_series
+
+    In Postgres, generate_series returns a set of rows, but in Trino it returns a single row with an array,
+    so we explicitly explode the array to get the same behaviour in Trino as in Postgres.
+    """
+    return query_tree.transform(
+        lambda e: sqlglot.exp.Explode(this=e)
+        if isinstance(e, sqlglot.exp.GenerateSeries)
+        and not isinstance(e.parent, (sqlglot.exp.Unnest, sqlglot.exp.Explode))
+        and not isinstance(e.parent, sqlglot.exp.Table)
+        and not (isinstance(e.parent, sqlglot.exp.Alias) and isinstance(e.parent.parent, sqlglot.exp.Unnest))
+        else e
+    )
+
+
 def v1_transforms(query_tree):
     """Apply a series of transforms to the query tree, recursively using SQLGlot's recursive transform function.
 
@@ -314,6 +330,7 @@ def v1_transforms(query_tree):
         warn_sequence,
         bytearray_parameter_fix,
         explicit_alias_on_cast,
+        wrap_generate_series_with_explode,
     )
     for f in transforms:
         query_tree = query_tree.transform(f)
