@@ -34,6 +34,10 @@ postgres_test_cases = [
     PostgresTestCase("test_cases/postgres/unnest_table.in", "test_cases/postgres/unnest_table.out", "ethereum"),
     PostgresTestCase("test_cases/postgres/concat_x.in", "test_cases/postgres/concat_x.out", "ethereum"),
     PostgresTestCase("test_cases/postgres/array.in", "test_cases/postgres/array.out", "ethereum"),
+    PostgresTestCase("test_cases/postgres/generate_series.in", "test_cases/postgres/generate_series.out", "ethereum"),
+    PostgresTestCase(
+        "test_cases/postgres/generate_series_alias.in", "test_cases/postgres/generate_series_alias.out", "ethereum"
+    ),
 ]
 
 
