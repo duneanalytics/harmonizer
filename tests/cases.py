@@ -82,5 +82,9 @@ postgres_cases_to_remove = [
         "test_cases/postgres/table_replacement.in", "test_cases/postgres/table_replacement.out", "optimism"
     ),
     PostgresTestCase("test_cases/postgres/integer_division.in", "test_cases/postgres/integer_division.out", "ethereum"),
+    PostgresTestCase("test_cases/postgres/generate_series.in", "test_cases/postgres/generate_series.out", "ethereum"),
+    PostgresTestCase(
+        "test_cases/postgres/generate_series_alias.in", "test_cases/postgres/generate_series_alias.out", "ethereum"
+    ),
 ]
 nlq_test_cases = [case for case in postgres_test_cases if case not in postgres_cases_to_remove]
