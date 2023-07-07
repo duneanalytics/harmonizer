@@ -175,8 +175,44 @@ def dex_trades_fixes(node):
                 flags=re.IGNORECASE,
             )
             final_where = re.sub(
+                "token_a_symbol",
+                "token_sold_symbol",
+                final_where,
+                flags=re.IGNORECASE,
+            )
+            final_where = re.sub(
+                "token_a_amount",
+                "token_sold_amount",
+                final_where,
+                flags=re.IGNORECASE,
+            )
+            final_where = re.sub(
+                "token_a_amount_raw",
+                "token_sold_amount_raw",
+                final_where,
+                flags=re.IGNORECASE,
+            )
+            final_where = re.sub(
                 "token_b_address",
                 "token_bought_address",
+                final_where,
+                flags=re.IGNORECASE,
+            )
+            final_where = re.sub(
+                "token_b_symbol",
+                "token_bought_symbol",
+                final_where,
+                flags=re.IGNORECASE,
+            )
+            final_where = re.sub(
+                "token_b_amount",
+                "token_bought_amount",
+                final_where,
+                flags=re.IGNORECASE,
+            )
+            final_where = re.sub(
+                "token_b_amount_raw",
+                "token_bought_amount_raw",
                 final_where,
                 flags=re.IGNORECASE,
             )
