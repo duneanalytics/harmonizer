@@ -13,6 +13,7 @@ from dune.harmonizer.custom_transforms import (
     v1_transforms,
     v2_transforms,
 )
+from dune.harmonizer.dunesql.dunepostgres import DunePostgres
 from dune.harmonizer.dunesql.dunesql import DuneSQL
 from dune.harmonizer.errors import DuneTranslationError
 from dune.harmonizer.table_replacements import spellbook_mapping
@@ -72,7 +73,10 @@ def _translate_query(query, sqlglot_dialect, dataset=None, syntax_only=False, ta
 
     # Parse query using SQLGlot
     try:
-        query_tree = sqlglot.parse_one(query, read=sqlglot_dialect)
+        if sqlglot_dialect == "postgres":
+            query_tree = sqlglot.parse_one(query, read=DunePostgres)
+        else:
+            query_tree = sqlglot.parse_one(query, read=sqlglot_dialect)
     except ParseError as e:
         raise DuneTranslationError(_handle_parse_error(parameter_map, e))
     except SqlglotError as e:
