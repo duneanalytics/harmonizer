@@ -7,7 +7,7 @@ assignees: andrewhong5297, vegarsti
 
 ---
 
-Please make sure you've already searched for your error in existing issues.
+Please make sure you've already searched for your error in existing issues, and have checked out the [migration guides here](https://dune.com/docs/query/Old-Query-Engines/).
 
 **Link to the untranslated query**
 https://dune.com/queries/1289104/2477858
